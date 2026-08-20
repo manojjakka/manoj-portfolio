@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manoj Kumar — Machine Learning &amp; AI Engineer</title>
+<meta name="description" content="Portfolio of Jakka Lakshmi Venkata Manoj Kumar — B.Tech CSE (AI &amp; ML) student, SRM Institute of Science and Technology. Machine learning, data analysis and applied GenAI projects.">
+<meta name="theme-color" content="#0A0E17">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0E17;
+    --bg-elevated:#0E1526;
+    --surface:#121B31;
+    --surface-hover:#16213A;
+    --border:#212D48;
+    --border-soft:#1A2438;
+    --text-primary:#EDEFF5;
+    --text-secondary:#93A0BC;
+    --text-tertiary:#5B6580;
+    --accent:#4FD8C9;
+    --accent-soft:rgba(79,216,201,0.10);
+    --accent-line:rgba(79,216,201,0.35);
+    --amber:#F2B84B;
+    --amber-soft:rgba(242,184,75,0.10);
+    --danger-line:#E5637A;
+    --radius:14px;
+    --maxw:1180px;
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important;}
+  }
+  body{
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family:'Inter',sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 900px 600px at 15% -5%, rgba(79,216,201,0.08), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(242,184,75,0.05), transparent 60%);
+    pointer-events:none;
+    z-index:0;
+  }
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif; font-weight:600; letter-spacing:-0.02em; color:var(--text-primary);}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  img{max-width:100%; display:block;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 32px;}
+  section{position:relative; z-index:1;}
+  ::selection{background:var(--accent); color:#06110F;}
+
+  /* focus visibility */
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--accent); outline-offset:3px; border-radius:4px;
+  }
+
+  /* ---------- Eyebrow / labels ---------- */
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.08em;
+    color:var(--accent);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:18px;
+    text-transform:uppercase;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px; height:1px; background:var(--accent-line);
+  }
+  .eyebrow .idx{color:var(--text-tertiary);}
+
+  .section-head{max-width:640px; margin-bottom:56px;}
+  .section-head h2{font-size:clamp(28px,3.6vw,40px); margin-bottom:14px;}
+  .section-head p{color:var(--text-secondary); font-size:16px;}
+
+  /* ---------- Nav ---------- */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:rgba(10,14,23,0.72);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border-soft);
+    transition:border-color .3s var(--ease);
+  }
+  nav{
+    max-width:var(--maxw); margin:0 auto; padding:16px 32px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{
+    font-family:'JetBrains Mono',monospace; font-weight:600; font-size:14.5px;
+    display:flex; align-items:center; gap:9px; color:var(--text-primary);
+  }
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent); box-shadow:0 0 10px var(--accent);}
+  .nav-links{display:flex; gap:34px; align-items:center;}
+  .nav-links a{
+    font-size:14px; color:var(--text-secondary); font-weight:500;
+    position:relative; padding:4px 0; transition:color .2s;
+  }
+  .nav-links a:hover{color:var(--text-primary);}
+  .nav-links a::after{
+    content:""; position:absolute; left:0; bottom:-2px; width:0; height:1px;
+    background:var(--accent); transition:width .25s var(--ease);
+  }
+  .nav-links a:hover::after{width:100%;}
+  .nav-cta{
+    font-size:13.5px; font-weight:600; padding:9px 18px; border-radius:8px;
+    border:1px solid var(--accent-line); color:var(--accent);
+    background:var(--accent-soft); transition:all .2s var(--ease);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .nav-cta:hover{background:var(--accent); color:#06110F;}
+  .nav-toggle{display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px;}
+  .nav-toggle span{width:22px; height:2px; background:var(--text-primary); transition:.25s;}
+  .mobile-panel{
+    display:none; position:fixed; top:60px; left:0; right:0; bottom:0; z-index:99;
+    background:#080B12;
+    padding:36px 32px; flex-direction:column; gap:26px;
+    overflow-y:auto;
+  }
+  .mobile-panel a{font-size:20px; font-family:'Space Grotesk',sans-serif; color:var(--text-primary);}
+  .mobile-panel.open{display:flex;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    min-height:100vh;
+    display:flex; align-items:center;
+    padding:140px 0 80px;
+  }
+  .hero .wrap{display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:center;}
+  .hero-status{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--accent);
+    background:var(--accent-soft); border:1px solid var(--accent-line);
+    padding:6px 12px; border-radius:20px; margin-bottom:26px;
+  }
+  .hero-status .pulse{width:6px;height:6px;border-radius:50%;background:var(--accent); animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(79,216,201,.5);} 50%{opacity:.6;box-shadow:0 0 0 6px rgba(79,216,201,0);}}
+  .hero h1{
+    font-size:clamp(38px,5.2vw,60px);
+    line-height:1.08;
+    margin-bottom:20px;
+  }
+  .hero h1 .accent-text{color:var(--accent);}
+  .hero .role-line{
+    font-family:'JetBrains Mono',monospace; font-size:15px; color:var(--text-secondary);
+    margin-bottom:22px; display:flex; flex-wrap:wrap; gap:10px 0;
+  }
+  .hero .role-line .sep{color:var(--text-tertiary); margin:0 10px;}
+  .hero p.lede{
+    font-size:17.5px; color:var(--text-secondary); max-width:520px; margin-bottom:34px;
+  }
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:48px;}
+  .btn{
+    display:inline-flex; align-items:center; gap:9px;
+    padding:13px 24px; border-radius:9px; font-weight:600; font-size:14.5px;
+    transition:all .22s var(--ease); cursor:pointer; border:1px solid transparent;
+  }
+  .btn-primary{background:var(--accent); color:#06110F;}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 30px -8px rgba(79,216,201,0.5);}
+  .btn-ghost{border-color:var(--border); color:var(--text-primary); background:var(--surface);}
+  .btn-ghost:hover{border-color:var(--accent-line); background:var(--surface-hover); transform:translateY(-2px);}
+  .hero-meta{display:flex; gap:28px; flex-wrap:wrap;}
+  .hero-meta div{font-family:'JetBrains Mono',monospace;}
+  .hero-meta .num{font-size:22px; font-weight:600; color:var(--text-primary);}
+  .hero-meta .lbl{font-size:11.5px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.06em;}
+
+  /* hero model-card widget */
+  .eval-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:26px; box-shadow:0 30px 60px -20px rgba(0,0,0,0.55);
+  }
+  .eval-card-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-bottom:16px; margin-bottom:18px; border-bottom:1px dashed var(--border);
+  }
+  .eval-card-head .title{font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.06em;}
+  .eval-card-head .badge{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent);
+    background:var(--accent-soft); border:1px solid var(--accent-line); padding:3px 9px; border-radius:5px;
+  }
+  .metric-row{margin-bottom:16px;}
+  .metric-row:last-child{margin-bottom:0;}
+  .metric-top{display:flex; justify-content:space-between; margin-bottom:7px; font-family:'JetBrains Mono',monospace; font-size:12.5px;}
+  .metric-top .m-label{color:var(--text-secondary);}
+  .metric-top .m-value{color:var(--text-primary); font-weight:600;}
+  .metric-track{height:6px; border-radius:4px; background:var(--bg-elevated); overflow:hidden; border:1px solid var(--border-soft);}
+  .metric-fill{height:100%; border-radius:4px; background:linear-gradient(90deg, var(--accent), #7EEBDD); width:0%; transition:width 1.4s var(--ease);}
+  .metric-fill.amber{background:linear-gradient(90deg, var(--amber), #F7D08A);}
+
+  /* ---------- Section frame ---------- */
+  .section-pad{padding:120px 0;}
+  .section-pad.tight{padding:100px 0;}
+  .divider{height:1px; background:linear-gradient(90deg, transparent, var(--border), transparent); max-width:var(--maxw); margin:0 auto;}
+
+  /* ---------- About ---------- */
+  .about-grid{display:grid; grid-template-columns:0.85fr 1.15fr; gap:64px; align-items:start;}
+  .about-text p{color:var(--text-secondary); font-size:16.5px; margin-bottom:18px;}
+  .about-text strong{color:var(--text-primary); font-weight:600;}
+  .about-facts{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;}
+  .fact{background:var(--surface); padding:22px;}
+  .fact .k{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;}
+  .fact .v{font-size:15px; color:var(--text-primary); font-weight:600; line-height:1.4;}
+
+  .edu-list{margin-top:28px; display:flex; flex-direction:column; gap:0;}
+  .edu-item{
+    display:grid; grid-template-columns:100px 1fr auto; gap:18px; align-items:baseline;
+    padding:16px 0; border-top:1px solid var(--border-soft);
+  }
+  .edu-item:last-child{border-bottom:1px solid var(--border-soft);}
+  .edu-item .yr{font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-tertiary);}
+  .edu-item .school{font-size:15px; font-weight:600; color:var(--text-primary);}
+  .edu-item .deg{font-size:13.5px; color:var(--text-secondary); margin-top:2px;}
+  .edu-item .score{font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--accent); white-space:nowrap;}
+
+  /* ---------- Skills ---------- */
+  .skills-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; align-items:start;}
+  .skill-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:24px; transition:transform .25s var(--ease), border-color .25s;
+  }
+  .skill-card:hover{transform:translateY(-4px); border-color:var(--accent-line);}
+  .skill-card .sk-head{display:flex; align-items:center; gap:10px; margin-bottom:16px;}
+  .skill-card .sk-icon{
+    width:32px; height:32px; border-radius:8px; background:var(--accent-soft); border:1px solid var(--accent-line);
+    display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:15px; font-family:'JetBrains Mono',monospace;
+  }
+  .skill-card h3{font-size:15.5px;}
+  .tag-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .tag{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-secondary);
+    background:var(--bg-elevated); border:1px solid var(--border-soft); padding:6px 11px; border-radius:6px;
+    transition:all .2s;
+  }
+  .tag:hover{color:var(--accent); border-color:var(--accent-line);}
+  .learning-strip{
+    margin-top:20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    background:var(--amber-soft); border:1px solid rgba(242,184,75,0.3); border-radius:10px; padding:14px 18px;
+  }
+  .learning-strip .lbl{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--amber); text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;}
+
+  /* ---------- Experience timeline ---------- */
+  .timeline{position:relative; padding-left:32px;}
+  .timeline::before{content:""; position:absolute; left:5px; top:6px; bottom:6px; width:1px; background:linear-gradient(var(--accent-line), var(--border) 85%);}
+  .t-item{position:relative; padding-bottom:36px;}
+  .t-item:last-child{padding-bottom:0;}
+  .t-item::before{
+    content:""; position:absolute; left:-32px; top:4px; width:11px; height:11px; border-radius:50%;
+    background:var(--bg); border:2px solid var(--accent);
+  }
+  .t-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px 22px;
+    transition:border-color .25s, transform .25s var(--ease);
+  }
+  .t-card:hover{border-color:var(--accent-line); transform:translateX(4px);}
+  .t-top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:8px; flex-wrap:wrap;}
+  .t-top h3{font-size:16.5px;}
+  .t-date{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-tertiary); white-space:nowrap;}
+  .t-org{font-size:13.5px; color:var(--accent); font-family:'JetBrains Mono',monospace; margin-bottom:8px;}
+  .t-desc{color:var(--text-secondary); font-size:14.5px;}
+
+  /* ---------- Projects (model cards — signature element) ---------- */
+  .projects-list{display:flex; flex-direction:column; gap:28px;}
+  .model-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; transition:border-color .3s, box-shadow .3s;
+  }
+  .model-card:hover{border-color:var(--accent-line); box-shadow:0 24px 50px -24px rgba(79,216,201,0.18);}
+  .mc-head{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;
+    padding:26px 28px 20px; border-bottom:1px solid var(--border-soft);
+  }
+  .mc-head-left .mc-eyebrow{font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;}
+  .mc-head-left h3{font-size:22px; margin-bottom:6px;}
+  .mc-head-left .mc-org{font-size:13.5px; color:var(--text-secondary);}
+  .mc-status{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--accent);
+    background:var(--accent-soft); border:1px solid var(--accent-line); padding:5px 11px; border-radius:6px; white-space:nowrap; height:fit-content;
+  }
+  .mc-body{padding:24px 28px; display:grid; grid-template-columns:1.3fr 1fr; gap:28px;}
+  .mc-desc ul{display:flex; flex-direction:column; gap:11px;}
+  .mc-desc li{position:relative; padding-left:18px; color:var(--text-secondary); font-size:14.5px; line-height:1.55;}
+  .mc-desc li::before{content:"›"; position:absolute; left:0; color:var(--accent); font-weight:700;}
+  .mc-metrics{background:var(--bg-elevated); border:1px solid var(--border-soft); border-radius:10px; padding:18px;}
+  .mc-metrics .metric-row{margin-bottom:14px;}
+  .mc-metrics .metric-row:last-child{margin-bottom:0;}
+  .mc-stack{padding:0 28px 26px;}
+  .mc-stack .tag-row{margin-top:2px;}
+
+  /* ---------- Achievements & Certs ---------- */
+  .ach-grid{display:grid; grid-template-columns:1fr 1fr; gap:48px;}
+  .cert-list{display:flex; flex-direction:column;}
+  .cert-item{display:flex; justify-content:space-between; align-items:flex-start; gap:14px; padding:16px 0; border-top:1px solid var(--border-soft);}
+  .cert-list .cert-item:last-child{border-bottom:1px solid var(--border-soft);}
+  .cert-item .c-name{font-size:14.5px; font-weight:600; color:var(--text-primary); margin-bottom:3px;}
+  .cert-item .c-org{font-size:13px; color:var(--text-secondary);}
+  .cert-item .c-date{font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-tertiary); white-space:nowrap; padding-top:2px;}
+  .highlight-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin-bottom:16px;
+    display:flex; gap:16px; align-items:flex-start;
+  }
+  .highlight-card .hc-icon{
+    width:38px; height:38px; border-radius:9px; background:var(--amber-soft); border:1px solid rgba(242,184,75,.35);
+    display:flex; align-items:center; justify-content:center; color:var(--amber); font-size:17px; flex-shrink:0;
+  }
+  .highlight-card h4{font-size:15px; margin-bottom:5px;}
+  .highlight-card p{font-size:13.5px; color:var(--text-secondary);}
+
+  /* ---------- Contact ---------- */
+  .contact-section{
+    background:var(--surface); border:1px solid var(--border); border-radius:20px;
+    padding:64px 56px; text-align:center; position:relative; overflow:hidden;
+  }
+  .contact-section::before{
+    content:""; position:absolute; inset:0;
+    background:radial-gradient(ellipse 500px 300px at 50% 0%, rgba(79,216,201,0.10), transparent 70%);
+    pointer-events:none;
+  }
+  .contact-section h2{font-size:clamp(28px,4vw,42px); margin-bottom:16px;}
+  .contact-section p{color:var(--text-secondary); font-size:16.5px; max-width:520px; margin:0 auto 36px;}
+  .contact-ctas{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:40px;}
+  .contact-links{display:flex; gap:28px; justify-content:center; flex-wrap:wrap; font-family:'JetBrains Mono',monospace; font-size:13.5px;}
+  .contact-links a{color:var(--text-secondary); display:flex; align-items:center; gap:8px; transition:color .2s;}
+  .contact-links a:hover{color:var(--accent);}
+
+  footer{padding:36px 0; text-align:center;}
+  footer p{font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-tertiary);}
+
+  /* reveal animation */
+  .reveal{opacity:0; transform:translateY(24px); transition:opacity .7s var(--ease), transform .7s var(--ease);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:980px){
+    .hero .wrap{grid-template-columns:1fr; gap:48px;}
+    .hero{padding-top:120px;}
+    .about-grid{grid-template-columns:1fr; gap:40px;}
+    .skills-grid{grid-template-columns:1fr 1fr;}
+    .ach-grid{grid-template-columns:1fr; gap:40px;}
+    .mc-body{grid-template-columns:1fr;}
+  }
+  @media (max-width:720px){
+    .nav-links{display:none;}
+    .nav-toggle{display:flex;}
+    .wrap{padding:0 20px;}
+    .section-pad{padding:80px 0;}
+    .hero{padding:110px 0 60px;}
+    .hero-meta{gap:22px;}
+    .skills-grid{grid-template-columns:1fr;}
+    .about-facts{grid-template-columns:1fr;}
+    .edu-item{grid-template-columns:1fr; gap:4px;}
+    .contact-section{padding:44px 24px;}
+    .mc-head{padding:22px 20px 16px;}
+    .mc-body{padding:20px; gap:20px;}
+    .mc-stack{padding:0 20px 22px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="#top" class="brand"><span class="dot"></span>manoj.kumar</a>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#skills">Skills</a>
+      <a href="#experience">Experience</a>
+      <a href="#projects">Projects</a>
+      <a href="#achievements">Achievements</a>
+      <a href="#contact">Contact</a>
+      <a href="Manoj_Resume.pdf" class="nav-cta" download>Resume ↓</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+</header>
+<div class="mobile-panel" id="mobilePanel">
+  <a href="#about">About</a>
+  <a href="#skills">Skills</a>
+  <a href="#experience">Experience</a>
+  <a href="#projects">Projects</a>
+  <a href="#achievements">Achievements</a>
+  <a href="#contact">Contact</a>
+  <a href="Manoj_Resume.pdf" download>Download Resume ↓</a>
+</div>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <div class="hero-status"><span class="pulse"></span>Open to AI/ML &amp; Data Analyst roles · 2027 grad</div>
+        <h1>Jakka Lakshmi Venkata<br><span class="accent-text">Manoj Kumar</span></h1>
+        <div class="role-line">Machine Learning &amp; AI Student <span class="sep">/</span> Data Science Enthusiast <span class="sep">/</span> Chennai, IN</div>
+        <p class="lede">B.Tech CSE (AI &amp; ML) student at SRM Institute of Science and Technology, 9.00 CGPA. I build and evaluate ML models end-to-end — from data preprocessing to dashboards — with hands-on exposure to Generative AI through industry job simulations at Deloitte, TATA and HP LIFE.</p>
+        <div class="hero-ctas">
+          <a href="#projects" class="btn btn-primary">View Projects</a>
+          <a href="Manoj_Resume.pdf" class="btn btn-ghost" download>Download Résumé</a>
+          <a href="#contact" class="btn btn-ghost">Get in Touch</a>
+        </div>
+        <div class="hero-meta">
+          <div><div class="num">9.00</div><div class="lbl">CGPA / 10</div></div>
+          <div><div class="num">87%</div><div class="lbl">Best Model Accuracy</div></div>
+          <div><div class="num">3</div><div class="lbl">ML Projects Shipped</div></div>
+          <div><div class="num">7</div><div class="lbl">Certifications</div></div>
+        </div>
+      </div>
+
+      <div class="eval-card reveal">
+        <div class="eval-card-head">
+          <span class="title">model_evaluation.json</span>
+          <span class="badge">LIVE</span>
+        </div>
+        <div class="metric-row">
+          <div class="metric-top"><span class="m-label">Road Severity Classifier — Accuracy</span><span class="m-value">87%</span></div>
+          <div class="metric-track"><div class="metric-fill" data-width="87"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-top"><span class="m-label">Road Severity Classifier — AUC-ROC</span><span class="m-value">0.83</span></div>
+          <div class="metric-track"><div class="metric-fill" data-width="83"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-top"><span class="m-label">Inventory Demand Model — Accuracy</span><span class="m-value">94%</span></div>
+          <div class="metric-track"><div class="metric-fill amber" data-width="94"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-top"><span class="m-label">Academic CGPA</span><span class="m-value">9.00 / 10</span></div>
+          <div class="metric-track"><div class="metric-fill" data-width="90"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ABOUT -->
+  <section class="section-pad" id="about">
+    <div class="wrap">
+      <div class="eyebrow"><span class="idx">01</span> About</div>
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <p>I'm a final-year <strong>B.Tech Computer Science and Engineering</strong> student specializing in <strong>Artificial Intelligence and Machine Learning</strong> at SRM Institute of Science and Technology, Chennai, graduating in 2027 with a <strong>9.00 CGPA</strong>.</p>
+          <p>My work centers on the full data science workflow — preprocessing, exploratory analysis, model building, evaluation, and dashboard development in Python. I've built a Random Forest classifier reaching <strong>87% accuracy and 0.83 AUC-ROC</strong>, and I'm currently deepening my skills in <strong>NLP and Data Structures &amp; Algorithms</strong>.</p>
+          <p>Beyond coursework, I've gained applied Generative AI and data analytics experience through job simulations with <strong>Deloitte, TATA and HP LIFE</strong>, and I served as <strong>NSS Student Coordinator</strong>, building leadership and communication skills alongside the technical work.</p>
+
+          <div class="about-facts" style="margin-top:30px;">
+            <div class="fact"><div class="k">Location</div><div class="v">Chennai, Tamil Nadu, India</div></div>
+            <div class="fact"><div class="k">Focus</div><div class="v">ML · Data Analysis · GenAI</div></div>
+            <div class="fact"><div class="k">Languages</div><div class="v">Telugu, English, Hindi, Tamil</div></div>
+            <div class="fact"><div class="k">Status</div><div class="v">Available for 2027 placements</div></div>
+          </div>
+        </div>
+
+        <div class="reveal">
+          <div class="eyebrow" style="margin-bottom:6px;"><span class="idx">—</span> Education</div>
+          <div class="edu-list">
+            <div class="edu-item">
+              <span class="yr">2023–27</span>
+              <div><div class="school">SRM Institute of Science and Technology, Ramapuram</div><div class="deg">B.Tech CSE — Artificial Intelligence &amp; Machine Learning</div></div>
+              <span class="score">9.00 CGPA</span>
+            </div>
+            <div class="edu-item">
+              <span class="yr">2021–23</span>
+              <div><div class="school">NRI Junior College, Palakaluru, Guntur</div><div class="deg">Class XII, MPC (Board of Intermediate)</div></div>
+              <span class="score">94.7%</span>
+            </div>
+            <div class="edu-item">
+              <span class="yr">2021</span>
+              <div><div class="school">Narayana, Markapur, Prakasam</div><div class="deg">Class X, Secondary School of Education, AP</div></div>
+              <span class="score">99%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SKILLS -->
+  <section class="section-pad" id="skills">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="idx">02</span> Skills &amp; Technologies</div>
+        <h2>The stack behind the models</h2>
+        <p>Languages, ML techniques and tools I use across the data science lifecycle — from raw data to a deployed dashboard.</p>
+      </div>
+
+      <div class="skills-grid">
+        <div class="skill-card reveal">
+          <div class="sk-head"><span class="sk-icon">&lt;/&gt;</span><h3>Programming Languages</h3></div>
+          <div class="tag-row">
+            <span class="tag">Python</span><span class="tag">Java</span><span class="tag">JavaScript</span><span class="tag">HTML</span><span class="tag">CSS</span>
+          </div>
+        </div>
+        <div class="skill-card reveal">
+          <div class="sk-head"><span class="sk-icon">Σ</span><h3>Machine Learning</h3></div>
+          <div class="tag-row">
+            <span class="tag">Random Forest</span><span class="tag">Classification</span><span class="tag">Accuracy / AUC-ROC</span><span class="tag">Feature Engineering</span><span class="tag">EDA</span>
+          </div>
+        </div>
+        <div class="skill-card reveal">
+          <div class="sk-head"><span class="sk-icon">⌘</span><h3>Libraries &amp; Frameworks</h3></div>
+          <div class="tag-row">
+            <span class="tag">Pandas</span><span class="tag">NumPy</span><span class="tag">Matplotlib</span><span class="tag">Scikit-learn</span><span class="tag">Streamlit</span><span class="tag">Flask</span><span class="tag">Django</span>
+          </div>
+        </div>
+        <div class="skill-card reveal">
+          <div class="sk-head"><span class="sk-icon">⛁</span><h3>Databases</h3></div>
+          <div class="tag-row">
+            <span class="tag">SQLite</span><span class="tag">MySQL</span>
+          </div>
+        </div>
+        <div class="skill-card reveal">
+          <div class="sk-head"><span class="sk-icon">✦</span><h3>Core Domains</h3></div>
+          <div class="tag-row">
+            <span class="tag">Machine Learning</span><span class="tag">Artificial Intelligence</span><span class="tag">Generative AI</span><span class="tag">Data Analysis</span><span class="tag">Data Visualization</span><span class="tag">Web Development</span>
+          </div>
+        </div>
+        <div class="skill-card reveal">
+          <div class="sk-head"><span class="sk-icon">git</span><h3>Tools &amp; Platforms</h3></div>
+          <div class="tag-row">
+            <span class="tag">Git</span><span class="tag">GitHub</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="learning-strip reveal">
+        <span class="lbl">Currently learning</span>
+        <div class="tag-row"><span class="tag">Natural Language Processing</span><span class="tag">Data Structures &amp; Algorithms</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- EXPERIENCE (job simulations + volunteering, honestly framed) -->
+  <section class="section-pad" id="experience">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="idx">03</span> Experience</div>
+        <h2>Applied learning &amp; leadership</h2>
+        <p>Industry job simulations and campus leadership that shaped how I approach real-world problems — logged chronologically.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="t-item reveal">
+          <div class="t-card">
+            <div class="t-top"><h3>GenAI Powered Data Analytics — Job Simulation</h3><span class="t-date mono">Feb 2026</span></div>
+            <div class="t-org">TATA (via Forage)</div>
+            <p class="t-desc">Exploratory data analysis, AI-based delinquency prediction, business reporting and data storytelling.</p>
+          </div>
+        </div>
+        <div class="t-item reveal">
+          <div class="t-card">
+            <div class="t-top"><h3>Technology Job Simulation — Generative AI &amp; Development</h3><span class="t-date mono">Feb 2026</span></div>
+            <div class="t-org">Deloitte</div>
+            <p class="t-desc">Practical experience in coding, development and Generative AI-based problem solving.</p>
+          </div>
+        </div>
+        <div class="t-item reveal">
+          <div class="t-card">
+            <div class="t-top"><h3>AI for Business Professionals</h3><span class="t-date mono">Feb 2026</span></div>
+            <div class="t-org">HP LIFE</div>
+            <p class="t-desc">Self-paced program covering prompt engineering, ethical AI practices, and integrating AI tools into workflow optimization.</p>
+          </div>
+        </div>
+        <div class="t-item reveal">
+          <div class="t-card">
+            <div class="t-top"><h3>Introduction to Data Science — Job Simulation</h3><span class="t-date mono">Apr 2026</span></div>
+            <div class="t-org">Forage</div>
+            <p class="t-desc">Data aggregation, analysis, anonymisation, analytical approach design and database design.</p>
+          </div>
+        </div>
+        <div class="t-item reveal">
+          <div class="t-card">
+            <div class="t-top"><h3>Student Coordinator, NSS</h3><span class="t-date mono">Feb 2024</span></div>
+            <div class="t-org">SRM Institute of Science and Technology</div>
+            <p class="t-desc">Coordinated NSS activities focused on self-discipline and communication skills development, building leadership and team coordination skills.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- PROJECTS -->
+  <section class="section-pad" id="projects">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="idx">04</span> Projects &amp; Case Studies</div>
+        <h2>Model cards from my recent work</h2>
+        <p>Three end-to-end projects spanning classical ML, retail analytics and full-stack development — each shipped with real evaluation numbers.</p>
+      </div>
+
+      <div class="projects-list">
+
+        <article class="model-card reveal">
+          <div class="mc-head">
+            <div class="mc-head-left">
+              <div class="mc-eyebrow">Course Project · 21CSS303T</div>
+              <h3>Road Condition Monitoring Analysis</h3>
+              <div class="mc-org">SRM Institute of Science and Technology · Jun 2026</div>
+            </div>
+            <span class="mc-status">Data Science / ML</span>
+          </div>
+          <div class="mc-body">
+            <div class="mc-desc">
+              <ul>
+                <li>Built a Random Forest classifier to predict road damage severity from ~1,000 records across Indian cities, achieving 87% accuracy and 0.83 AUC-ROC.</li>
+                <li>Tuned a 100-tree model (max depth 15) with a stratified 80-20 train-test split; identified population density, recent case trends, and mobility factors as top predictive features.</li>
+                <li>Developed a Streamlit dashboard to visualize results, flagging approximately 408 high-severity roads for prioritized maintenance.</li>
+              </ul>
+            </div>
+            <div class="mc-metrics">
+              <div class="metric-row">
+                <div class="metric-top"><span class="m-label">Accuracy</span><span class="m-value">87%</span></div>
+                <div class="metric-track"><div class="metric-fill" data-width="87"></div></div>
+              </div>
+              <div class="metric-row">
+                <div class="metric-top"><span class="m-label">AUC-ROC</span><span class="m-value">0.83</span></div>
+                <div class="metric-track"><div class="metric-fill" data-width="83"></div></div>
+              </div>
+              <div class="metric-row">
+                <div class="metric-top"><span class="m-label">High-severity roads flagged</span><span class="m-value">~408</span></div>
+                <div class="metric-track"><div class="metric-fill amber" data-width="70"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="mc-stack">
+            <div class="tag-row"><span class="tag">Python</span><span class="tag">Scikit-learn</span><span class="tag">Pandas</span><span class="tag">Streamlit</span></div>
+          </div>
+        </article>
+
+        <article class="model-card reveal">
+          <div class="mc-head">
+            <div class="mc-head-left">
+              <div class="mc-eyebrow">GitHub Repository</div>
+              <h3>Retail Inventory Management Analysis</h3>
+              <div class="mc-org">SRM Institute of Science and Technology · Jan 2026 – Present</div>
+            </div>
+            <span class="mc-status">Data Science / ML</span>
+          </div>
+          <div class="mc-body">
+            <div class="mc-desc">
+              <ul>
+                <li>Analyzed 6 months of sales data from a retail store dataset to identify trends, demand patterns, and stock optimization opportunities.</li>
+                <li>Built a predictive model achieving 94% accuracy to support inventory and stock-level decisions.</li>
+                <li>Applied data preprocessing and visualization techniques to generate insights for reducing overstocking and stockouts.</li>
+              </ul>
+            </div>
+            <div class="mc-metrics">
+              <div class="metric-row">
+                <div class="metric-top"><span class="m-label">Model Accuracy</span><span class="m-value">94%</span></div>
+                <div class="metric-track"><div class="metric-fill amber" data-width="94"></div></div>
+              </div>
+              <div class="metric-row">
+                <div class="metric-top"><span class="m-label">Sales data analyzed</span><span class="m-value">6 months</span></div>
+                <div class="metric-track"><div class="metric-fill" data-width="60"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="mc-stack">
+            <div class="tag-row"><span class="tag">Python</span><span class="tag">Pandas</span><span class="tag">NumPy</span><span class="tag">Matplotlib</span></div>
+            <p style="margin-top:14px;"><a href="https://github.com/manojjakka/Retail-Inventory-Management-Analysis-" target="_blank" rel="noopener" class="mono" style="color:var(--accent); font-size:13px;">github.com/manojjakka/Retail-Inventory-Management-Analysis- ↗</a></p>
+          </div>
+        </article>
+
+        <article class="model-card reveal">
+          <div class="mc-head">
+            <div class="mc-head-left">
+              <div class="mc-eyebrow">GitHub Repository</div>
+              <h3>Student Mental Healthcare System</h3>
+              <div class="mc-org">SRM Institute of Science and Technology · Dec 2025 – Present</div>
+            </div>
+            <span class="mc-status">AI / Web Application</span>
+          </div>
+          <div class="mc-body">
+            <div class="mc-desc">
+              <ul>
+                <li>Designed a 10-question assessment model with secure login and automated scoring to evaluate student mental well-being and stress levels.</li>
+                <li>Tested the system locally with approximately 60–70 students from the classroom to validate usability and scoring accuracy.</li>
+                <li>Applied AI concepts and full-stack development to address real-world student wellness challenges.</li>
+              </ul>
+            </div>
+            <div class="mc-metrics">
+              <div class="metric-row">
+                <div class="metric-top"><span class="m-label">Assessment questions</span><span class="m-value">10</span></div>
+                <div class="metric-track"><div class="metric-fill" data-width="45"></div></div>
+              </div>
+              <div class="metric-row">
+                <div class="metric-top"><span class="m-label">Users tested</span><span class="m-value">~60–70</span></div>
+                <div class="metric-track"><div class="metric-fill" data-width="65"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="mc-stack">
+            <div class="tag-row"><span class="tag">Python</span><span class="tag">Flask / Django</span><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span><span class="tag">SQLite / MySQL</span></div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ACHIEVEMENTS & CERTIFICATIONS -->
+  <section class="section-pad" id="achievements">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="idx">05</span> Achievements &amp; Certifications</div>
+        <h2>Validated, in writing</h2>
+        <p>Seven certifications and two competitive achievements backing the skills above.</p>
+      </div>
+
+      <div class="ach-grid">
+        <div class="reveal">
+          <div class="eyebrow" style="margin-bottom:16px;"><span class="idx">—</span> Certifications</div>
+          <div class="cert-list">
+            <div class="cert-item"><div><div class="c-name">Java Programming</div><div class="c-org">WAVE Infotech · A+ grade</div></div><span class="c-date">Aug 2025</span></div>
+            <div class="cert-item"><div><div class="c-name">Technology Job Simulation — GenAI &amp; Development</div><div class="c-org">Deloitte</div></div><span class="c-date">Feb 2026</span></div>
+            <div class="cert-item"><div><div class="c-name">AI for Business Professionals</div><div class="c-org">HP LIFE</div></div><span class="c-date">Feb 2026</span></div>
+            <div class="cert-item"><div><div class="c-name">GenAI Powered Data Analytics — Job Simulation</div><div class="c-org">TATA (Forage)</div></div><span class="c-date">Feb 2026</span></div>
+            <div class="cert-item"><div><div class="c-name">AI Fundamentals with IBM SkillsBuild</div><div class="c-org">Cisco Networking Academy</div></div><span class="c-date">Feb 2026</span></div>
+            <div class="cert-item"><div><div class="c-name">Digital Skills: Artificial Intelligence</div><div class="c-org">Accenture (FutureLearn)</div></div><span class="c-date">Mar 2026</span></div>
+            <div class="cert-item"><div><div class="c-name">Introduction to Data Science — Job Simulation</div><div class="c-org">Forage</div></div><span class="c-date">Apr 2026</span></div>
+          </div>
+        </div>
+
+        <div class="reveal">
+          <div class="eyebrow" style="margin-bottom:16px;"><span class="idx">—</span> Achievements</div>
+          <div class="highlight-card">
+            <span class="hc-icon">🏆</span>
+            <div><h4>Finalist — AI-domain Hackathon</h4><p>SRM Institute of Science and Technology · March 2026</p></div>
+          </div>
+          <div class="highlight-card">
+            <span class="hc-icon">💻</span>
+            <div><h4>College-level coding contests</h4><p>Participated in multiple contests, strengthening problem-solving and programming skills.</p></div>
+          </div>
+          <div class="highlight-card" style="margin-bottom:0;">
+            <span class="hc-icon">🤝</span>
+            <div><h4>NSS Student Coordinator</h4><p>Coordinated activities focused on self-discipline and communication, building leadership skills. Feb 2024</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- CONTACT -->
+  <section class="section-pad" id="contact">
+    <div class="wrap">
+      <div class="contact-section reveal">
+        <div class="eyebrow" style="justify-content:center;"><span class="idx">06</span> Contact</div>
+        <h2>Let's build something with data.</h2>
+        <p>Open to AI/ML Engineering, Data Analysis and GenAI roles for 2027 graduation. I usually reply within a day.</p>
+        <div class="contact-ctas">
+          <a href="mailto:lj2345@srmist.edu.in" class="btn btn-primary">Email Me</a>
+          <a href="Manoj_Resume.pdf" class="btn btn-ghost" download>Download Résumé</a>
+        </div>
+        <div class="contact-links">
+          <a href="mailto:lj2345@srmist.edu.in">✉ lj2345@srmist.edu.in</a>
+          <a href="tel:+916304956293">☎ +91 63049 56293</a>
+          <a href="https://linkedin.com/in/manoj-jakka-4a8023334" target="_blank" rel="noopener">in/ linkedin.com/in/manoj-jakka-4a8023334</a>
+          <a href="https://github.com/manojjakka" target="_blank" rel="noopener">⌥ github.com/manojjakka</a>
+          <a href="#top">📍 Chennai, Tamil Nadu, India</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>© 2026 Jakka Lakshmi Venkata Manoj Kumar · Built with intent, backed by real evaluation metrics.</p>
+</footer>
+
+<script>
+  // Mobile nav toggle
+  const navToggle = document.getElementById('navToggle');
+  const mobilePanel = document.getElementById('mobilePanel');
+  navToggle.addEventListener('click', () => {
+    const open = mobilePanel.classList.toggle('open');
+    navToggle.setAttribute('aria-expanded', open);
+  });
+  mobilePanel.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    mobilePanel.classList.remove('open');
+    navToggle.setAttribute('aria-expanded', 'false');
+  }));
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => io.observe(el));
+
+  // Animate metric bars when their card enters view
+  const metricFills = document.querySelectorAll('.metric-fill');
+  const mio = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const w = entry.target.getAttribute('data-width');
+        entry.target.style.width = w + '%';
+        mio.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  metricFills.forEach(el => mio.observe(el));
+
+  // Header border on scroll
+  const header = document.querySelector('header');
+  window.addEventListener('scroll', () => {
+    header.style.borderBottomColor = window.scrollY > 20 ? 'var(--border)' : 'var(--border-soft)';
+  });
+</script>
+
+</body>
+</html>
