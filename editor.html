@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Portfolio Editor — Manoj Kumar</title>
+  <title>Portfolio Editor</title>
   <style>
     :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#172033;background:#f3f5f9;font-synthesis:none}
     *{box-sizing:border-box}body{margin:0}button,input,textarea{font:inherit}button{cursor:pointer}
@@ -35,11 +35,12 @@
       .box{padding:18px;max-height:calc(100dvh - 32px)}
       .fields input,.fields textarea{font-size:16px}
     }
+    #repo-field[hidden]{display:none!important}
   </style>
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">Portfolio Editor<small>Manoj Kumar · edits publish automatically when GitHub is connected</small></div>
+    <div class="brand">Portfolio Editor<small>Edit text, links, projects, and certifications</small></div>
     <div class="actions">
       <button class="btn optional" id="restore">Restore live copy</button>
       <button class="btn" id="save">Save draft</button>
@@ -128,9 +129,9 @@
   <div class="dialog" id="github-dialog" role="dialog" aria-modal="true" aria-labelledby="github-heading">
     <form class="box" id="github-form">
       <h2 id="github-heading">Connect to GitHub</h2>
-      <p style="font-size:13px;line-height:1.55;color:#59677e;margin:0 0 15px;">Create a fine-grained personal access token for only <strong>manojjakka/manoj-portfolio</strong>, with <strong>Contents: Read and write</strong>. The editor keeps it in this tab only and uses it to publish your updated portfolio page.</p>
+      <p id="github-help" style="font-size:13px;line-height:1.55;color:#59677e;margin:0 0 15px;">Create a fine-grained personal access token for only <strong>manojjakka/manoj-portfolio</strong>, with <strong>Contents: Read and write</strong>. The editor keeps it in this tab only and uses it to publish your updated portfolio page.</p>
       <p style="font-size:13px;margin:0 0 15px;"><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener" style="color:#186bda;">Open GitHub token settings ↗</a></p>
-      <div class="fields"><label>GitHub access token<input name="token" type="password" autocomplete="off" required placeholder="github_pat_…"></label></div>
+      <div class="fields"><label id="repo-field" hidden>GitHub repository (owner/name)<input name="repository" type="text" autocomplete="off" placeholder="yourname/your-portfolio"></label><label>GitHub access token<input name="token" type="password" autocomplete="off" required placeholder="github_pat_…"></label></div>
       <div class="form-actions"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit">Connect</button></div>
     </form>
   </div>
@@ -139,17 +140,29 @@
     (() => {
       // v2 stores only edits made after the auto-publish editor was installed.
       // Ignore the v1 snapshot because it may be an older already-published page.
-      const DRAFT_KEY = 'manoj-portfolio-editor-draft-v2';
-      const TOKEN_KEY = 'manoj-portfolio-github-token';
+      const launchpadMode = new URLSearchParams(location.search).get('fromLaunchpad') === '1';
+      const DRAFT_KEY = launchpadMode ? 'portfolio-launchpad-draft-v1' : 'manoj-portfolio-editor-draft-v2';
+      const TOKEN_KEY = launchpadMode ? 'portfolio-launchpad-github-token' : 'manoj-portfolio-github-token';
+      const REPO_KEY = 'portfolio-launchpad-github-repository-v1';
+      const BRANCH_KEY = 'portfolio-launchpad-github-branch-v1';
       const frame = document.getElementById('page');
       const status = document.getElementById('status');
       const mode = document.getElementById('mode');
-      const API_ROOT = 'https://api.github.com/repos/manojjakka/manoj-portfolio';
+      const apiRoot = () => launchpadMode ? `https://api.github.com/repos/${sessionStorage.getItem(REPO_KEY) || ''}` : 'https://api.github.com/repos/manojjakka/manoj-portfolio';
+      const publishBranch = () => launchpadMode ? sessionStorage.getItem(BRANCH_KEY) || 'main' : 'main';
       const layout = document.getElementById('editor-layout');
       let selected = null;
       let selectedLink = null;
       let currentSource = 'live';
       let autoPublishTimer = null;
+      if (launchpadMode) {
+        document.querySelector('.brand').childNodes[0].textContent = 'Portfolio Editor';
+        document.querySelector('.brand small').textContent = 'Your portfolio · saved in this browser';
+        document.getElementById('restore').hidden = true;
+        document.getElementById('repo-field').hidden = false;
+        document.getElementById('repo-field').querySelector('input').required = true;
+        document.getElementById('github-help').innerHTML = 'Enter the GitHub repository where <strong>you</strong> want this portfolio published. Create a fine-grained token for that repository with <strong>Contents: Read and write</strong>. Publishing writes this portfolio to that repository’s <strong>index.html</strong>. Your token is kept in this browser tab only.';
+      }
       const say = message => {
         status.textContent = message;
         status.dataset.state = /Published to GitHub/i.test(message) ? 'success' : /(could not|rejected|not allowed|failed|needs contents|GitHub returned|Connect GitHub to)/i.test(message) ? 'error' : '';
@@ -224,7 +237,16 @@
         mode.textContent = 'Editing enabled';
       }
 
+      const LAUNCHPAD_STARTER = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Portfolio</title><style>:root{--bg:#0A0E17;--surface:#121B31;--line:#212D48;--text:#EDEFF5;--muted:#93A0BC;--accent:#4FD8C9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,Arial,sans-serif;padding:0 7vw 60px}.hero{padding:14vh 0 9vh;border-bottom:1px solid var(--line)}.eyebrow,.mc-eyebrow{font:11px monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(38px,7vw,76px);line-height:1.02;max-width:850px;margin:18px 0}h2{font-size:30px;margin:50px 0 20px}p,.mc-org{color:var(--muted)}.hero p{max-width:620px}.projects-list,.cert-list{display:grid;gap:14px}.model-card,.cert-item{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.mc-head{display:flex;justify-content:space-between;gap:12px}.mc-head h3{margin:8px 0}.mc-stack{margin-top:16px;color:var(--accent)}.tag{display:inline-block;padding:5px 9px;border:1px solid var(--line);border-radius:7px;color:var(--muted);margin:4px;font-size:12px}.cert-item{display:flex;justify-content:space-between;gap:14px}.c-name{font-weight:700}.c-org,.c-date{font-size:12px;color:var(--muted)}a{color:var(--accent)}</style></head><body><header class="hero"><div class="eyebrow">Your portfolio</div><h1>Your name goes here.</h1><p>Add a short introduction about your target role, your interests, and the work you want people to see.</p></header><section><h2>About</h2><p>Replace this text with a short, accurate introduction.</p></section><section><h2>Projects</h2><div class="projects-list"></div></section><section><h2>Skills</h2><p>Add your relevant tools and skills.</p></section><section><h2>Certifications</h2><div class="cert-list"></div></section><section><h2>Contact</h2><p>Add links you want people to use to reach you.</p></section></body></html>`;
+
       function loadLive() {
+        if (launchpadMode) {
+          currentSource = 'starter';
+          frame.onload = prepareFrame;
+          frame.srcdoc = LAUNCHPAD_STARTER;
+          mode.textContent = 'New portfolio';
+          return;
+        }
         currentSource = 'live';
         frame.onload = prepareFrame;
         frame.removeAttribute('srcdoc');
@@ -254,6 +276,7 @@
         const token = sessionStorage.getItem(TOKEN_KEY);
         if (token && confirm('GitHub is connected for this browser tab. Disconnect it?')) {
           sessionStorage.removeItem(TOKEN_KEY);
+          if (launchpadMode) { sessionStorage.removeItem(REPO_KEY); sessionStorage.removeItem(BRANCH_KEY); }
           document.getElementById('github-settings').textContent = 'Connect GitHub';
           say('GitHub disconnected.');
           return;
@@ -264,13 +287,16 @@
         event.preventDefault();
         const form = event.currentTarget;
         const token = new FormData(form).get('token').trim();
+        const repoPath = launchpadMode ? String(new FormData(form).get('repository') || '').trim() : 'manojjakka/manoj-portfolio';
+        if (launchpadMode && !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repoPath)) { say('Enter the repository as username/repository.'); return; }
         const submit = form.querySelector('[type="submit"]');
         submit.disabled = true; submit.textContent = 'Checking access…';
         try {
-          const response = await fetch(`${API_ROOT}/contents/index.html?ref=main`, {
+          const response = await fetch(launchpadMode ? `https://api.github.com/repos/${repoPath}` : `${apiRoot()}/contents/index.html?ref=main`, {
             headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}
           });
-          if (!response.ok) throw new Error(response.status === 401 ? 'GitHub did not accept that token.' : response.status === 403 ? 'This token needs Contents read and write access to manoj-portfolio.' : `GitHub returned ${response.status}.`);
+          if (!response.ok) throw new Error(response.status === 401 ? 'GitHub did not accept that token.' : response.status === 403 ? `This token needs Contents read and write access to ${repoPath}.` : response.status === 404 ? 'Could not access that repository. Check its owner/name and token access.' : `GitHub returned ${response.status}.`);
+          if (launchpadMode) { const repo=await response.json(); sessionStorage.setItem(REPO_KEY,repoPath); sessionStorage.setItem(BRANCH_KEY,repo.default_branch || 'main'); }
           sessionStorage.setItem(TOKEN_KEY, token);
           document.getElementById('github-settings').textContent = 'GitHub connected';
           document.getElementById('github-dialog').classList.remove('open');
@@ -321,17 +347,20 @@
         button.disabled = true; button.textContent = 'Publishing…';
         try {
           const headers = {Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
-          const current = await fetch(`${API_ROOT}/contents/index.html?ref=main`, {headers});
-          if (!current.ok) throw new Error(current.status === 401 ? 'GitHub rejected the token. Reconnect with a valid token.' : `Could not read index.html from GitHub (${current.status}).`);
-          const existing = await current.json();
-          const response = await fetch(`${API_ROOT}/contents/index.html`, {method:'PUT',headers,body:JSON.stringify({message:'Publish portfolio updates from editor',content,sha:existing.sha,branch:'main'})});
+          const current = await fetch(`${apiRoot()}/contents/index.html?ref=${encodeURIComponent(publishBranch())}`, {headers});
+          if (!current.ok && current.status !== 404) throw new Error(current.status === 401 ? 'GitHub rejected the token. Reconnect with a valid token.' : `Could not read index.html from GitHub (${current.status}).`);
+          const existing = current.ok ? await current.json() : null;
+          const payload={message:'Publish portfolio updates from editor',content,branch:publishBranch()};
+          if(existing?.sha)payload.sha=existing.sha;
+          const response = await fetch(`${apiRoot()}/contents/index.html`, {method:'PUT',headers,body:JSON.stringify(payload)});
           if (!response.ok) {
             const details = await response.json().catch(() => ({}));
             throw new Error(response.status === 409 || response.status === 422 ? 'GitHub changed since this page loaded. Reload the editor, restore your saved draft, and publish again.' : details.message || `GitHub could not publish this update (${response.status}).`);
           }
           // Keep the local draft only until GitHub accepts the update. On the
           // next editor visit, load the published copy from GitHub Pages.
-          localStorage.removeItem(DRAFT_KEY);
+          if (launchpadMode) localStorage.setItem(DRAFT_KEY, html);
+          else localStorage.removeItem(DRAFT_KEY);
           mode.textContent = 'Published to GitHub';
           say('Published to GitHub. GitHub Pages is updating your live portfolio now.');
         } catch (error) { say(error.message || 'Could not publish. Check your connection and token permissions.'); }
