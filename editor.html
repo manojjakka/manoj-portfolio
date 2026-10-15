@@ -61,6 +61,13 @@
         <button class="btn" id="apply-cert-link">Set link on selected certification</button>
         <button class="btn" id="remove-cert-link">Remove certification link</button>
       </div>
+      <div class="group">
+        <h2>Project link</h2>
+        <p>Click a project card, then add or update its repository or demo URL.</p>
+        <div class="fields"><label for="project-url">Project URL</label><input id="project-url" type="text" placeholder="https://github.com/…"></div>
+        <button class="btn" id="apply-project-link">Set link on selected project</button>
+        <button class="btn" id="remove-project-link">Remove project link</button>
+      </div>
       <div class="note"><strong>Publish directly:</strong> connect GitHub once, then choose <em>Publish to GitHub</em> whenever your edits are ready. GitHub Pages will deploy the update. Your access token stays in this browser tab and is cleared when the tab closes.</div>
       <div class="status" id="status" role="status"></div>
     </aside>
@@ -89,6 +96,7 @@
         <label>Project name<input name="name" required placeholder="e.g. Personal Finance Dashboard"></label>
         <label>Project type<input name="type" placeholder="e.g. Data Science / Web Application"></label>
         <label>Tools and technologies<input name="tools" placeholder="Python, Flask, MySQL"></label>
+        <label>Repository or demo URL (optional)<input name="url" type="text" placeholder="https://github.com/…"></label>
         <label>Short description<textarea name="description" placeholder="What did you build? What does it do?"></textarea></label>
       </div>
       <div class="form-actions"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit">Add to page</button></div>
@@ -137,6 +145,10 @@
           if (selected) selected.removeAttribute('data-editor-selected');
           selected = card;
           if (selected) selected.setAttribute('data-editor-selected', 'true');
+          if (selected && selected.classList.contains('model-card')) {
+            const projectLink = selected.querySelector('.mc-stack a');
+            document.getElementById('project-url').value = projectLink?.getAttribute('href') || '';
+          }
         });
         const style = doc.createElement('style');
         style.dataset.editorUi = 'true';
@@ -285,6 +297,14 @@
         const tags = String(values.get('tools') || 'Add technologies').split(',').map(tag => `<span class="tag">${esc(tag.trim())}</span>`).join('');
         const card = doc.createElement('article'); card.className = 'model-card';
         card.innerHTML = `<div class="mc-head"><div class="mc-head-left"><div class="mc-eyebrow">Project</div><h3>${esc(values.get('name'))}</h3><div class="mc-org">${esc(values.get('tools') || 'Add tools and technologies')}</div></div><span class="mc-status">${esc(values.get('type') || 'Project')}</span></div><div class="mc-body"><div class="mc-desc"><ul><li>${esc(values.get('description') || 'Describe what you built and what it does.')}</li><li>Click here to add another project detail.</li></ul></div><div class="mc-metrics"><p style="color:var(--text-secondary);font-size:14px;">Click this area to add project details, results, or links.</p></div></div><div class="mc-stack"><div class="tag-row">${tags}</div></div>`;
+        const projectUrl = String(values.get('url') || '').trim();
+        if (projectUrl && !/^(javascript|data):/i.test(projectUrl)) {
+          const stack = card.querySelector('.mc-stack');
+          const paragraph = doc.createElement('p'); paragraph.style.marginTop = '14px';
+          const anchor = doc.createElement('a'); anchor.className = 'project-link mono'; anchor.href = projectUrl; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
+          anchor.style.color = 'var(--accent)'; anchor.style.fontSize = '13px'; anchor.textContent = 'Project Repository ↗';
+          paragraph.append(anchor); stack.append(paragraph);
+        }
         list.append(card); event.currentTarget.reset(); document.getElementById('project-dialog').classList.remove('open');
         say('Project added. Click any text in its card to edit.');
       });
@@ -332,6 +352,36 @@
         if (!anchor) return say('The selected certification does not have a link.');
         const label = frame.contentDocument.createElement('div'); label.className = anchor.className; label.textContent = anchor.textContent;
         anchor.replaceWith(label); say('Certificate link removed.');
+      });
+      document.getElementById('apply-project-link').addEventListener('click', () => {
+        if (!selected || !selected.classList.contains('model-card') || !selected.isConnected) return say('Click a project card in the preview first.');
+        const destination = document.getElementById('project-url').value.trim();
+        if (!destination) return say('Enter the project URL.');
+        if (/^(javascript|data):/i.test(destination)) return say('That link destination is not allowed.');
+        const stack = selected.querySelector('.mc-stack');
+        if (!stack) return say('Could not find the project link area.');
+        let anchor = stack.querySelector('a');
+        if (!anchor) {
+          let paragraph = stack.querySelector('p');
+          if (!paragraph) { paragraph = frame.contentDocument.createElement('p'); paragraph.style.marginTop = '14px'; stack.append(paragraph); }
+          anchor = frame.contentDocument.createElement('a');
+          anchor.className = 'project-link mono'; anchor.style.color = 'var(--accent)'; anchor.style.fontSize = '13px';
+          anchor.textContent = 'Project Repository ↗'; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; paragraph.append(anchor);
+        }
+        anchor.href = destination; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
+        selectedLink = anchor; anchor.setAttribute('data-editor-link-selected', 'true');
+        document.getElementById('link-url').value = destination;
+        document.getElementById('selected-link').textContent = `Selected: ${anchor.textContent.trim()}`;
+        say('Project link added to the selected card. Publish to GitHub when ready to make it live.');
+      });
+      document.getElementById('remove-project-link').addEventListener('click', () => {
+        if (!selected || !selected.classList.contains('model-card') || !selected.isConnected) return say('Click a project card in the preview first.');
+        const anchor = selected.querySelector('.mc-stack a');
+        if (!anchor) return say('The selected project does not have a link.');
+        const container = anchor.parentElement;
+        anchor.remove();
+        if (container.tagName === 'P' && !container.textContent.trim()) container.remove();
+        selectedLink = null; say('Project link removed.');
       });
     })();
   </script>
