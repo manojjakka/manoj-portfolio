@@ -46,6 +46,12 @@
         <p>Click a project or certification card in the preview, then choose remove.</p>
         <button class="btn danger" id="remove">Remove selected card</button>
       </div>
+      <div class="group">
+        <h2>Change a link</h2>
+        <p>Click a link in the preview, enter its new destination, then apply it. Edit the link wording directly in the preview.</p>
+        <div class="fields"><label for="link-url">Link destination</label><input id="link-url" type="text" placeholder="https://… · mailto:… · tel:…"></div>
+        <button class="btn" id="apply-link">Update selected link</button>
+      </div>
       <div class="note"><strong>To publish:</strong> download the updated portfolio, open your GitHub repository, upload the downloaded <code>index.html</code> and commit the change. GitHub Pages will update the live site.</div>
       <div class="status" id="status" role="status"></div>
     </aside>
@@ -86,6 +92,7 @@
       const status = document.getElementById('status');
       const mode = document.getElementById('mode');
       let selected = null;
+      let selectedLink = null;
       let currentSource = 'live';
       const say = message => { status.textContent = message; };
 
@@ -96,7 +103,14 @@
         doc.body.spellcheck = true;
         doc.addEventListener('click', event => {
           const link = event.target.closest('a');
-          if (link) event.preventDefault();
+          if (link) {
+            event.preventDefault();
+            if (selectedLink) selectedLink.removeAttribute('data-editor-link-selected');
+            selectedLink = link;
+            selectedLink.setAttribute('data-editor-link-selected', 'true');
+            document.getElementById('link-url').value = link.getAttribute('href') || '';
+            say('Link selected. Change its destination in Link settings.');
+          }
           const card = event.target.closest('.model-card, .cert-item');
           if (selected) selected.removeAttribute('data-editor-selected');
           selected = card;
@@ -104,7 +118,7 @@
         });
         const style = doc.createElement('style');
         style.dataset.editorUi = 'true';
-        style.textContent = '[data-editor-selected="true"]{outline:2px solid #4d8df5!important;outline-offset:4px!important}';
+        style.textContent = '[data-editor-selected="true"],[data-editor-link-selected="true"]{outline:2px solid #4d8df5!important;outline-offset:4px!important}';
         doc.head.appendChild(style);
         mode.textContent = 'Editing enabled';
       }
@@ -135,7 +149,7 @@
       document.getElementById('restore').addEventListener('click', () => {
         if (!confirm('Discard this browser draft and reload the published portfolio?')) return;
         localStorage.removeItem(DRAFT_KEY);
-        selected = null;
+        selected = null; selectedLink = null;
         loadLive();
         say('Loaded the published portfolio.');
       });
@@ -144,7 +158,9 @@
         if (!doc) return say('The preview is still loading. Try again in a moment.');
         const output = doc.documentElement.cloneNode(true);
         output.querySelectorAll('[contenteditable]').forEach(node => node.removeAttribute('contenteditable'));
-        output.querySelectorAll('[data-editor-selected]').forEach(node => node.removeAttribute('data-editor-selected'));
+        output.querySelectorAll('[data-editor-selected],[data-editor-link-selected]').forEach(node => {
+          node.removeAttribute('data-editor-selected'); node.removeAttribute('data-editor-link-selected');
+        });
         output.querySelectorAll('[data-editor-ui]').forEach(node => node.remove());
         const html = '<!DOCTYPE html>\n' + output.outerHTML;
         const blob = new Blob([html], {type:'text/html;charset=utf-8'});
@@ -192,6 +208,14 @@
         const kind = selected.classList.contains('model-card') ? 'Project' : 'Certification';
         if (!confirm(`Remove this ${kind.toLowerCase()} from the portfolio?`)) return;
         selected.remove(); selected = null; say(`${kind} removed from the draft.`);
+      });
+      document.getElementById('apply-link').addEventListener('click', () => {
+        if (!selectedLink || !selectedLink.isConnected) return say('Click a link in the preview first.');
+        const destination = document.getElementById('link-url').value.trim();
+        if (!destination) return say('Enter a link destination.');
+        if (/^(javascript|data):/i.test(destination)) return say('That link destination is not allowed.');
+        selectedLink.setAttribute('href', destination);
+        say('Link destination updated in the draft.');
       });
     })();
   </script>
