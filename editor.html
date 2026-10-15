@@ -10,8 +10,9 @@
     .topbar{height:68px;background:#fff;border-bottom:1px solid #dfe4ee;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:5}
     .brand{font-weight:750;font-size:16px}.brand small{display:block;color:#71809b;font-weight:450;font-size:12px;margin-top:2px}
     .actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.btn{border:1px solid #d5dce8;background:white;color:#24314a;padding:9px 13px;border-radius:9px;font-weight:650;font-size:13px}.btn:hover{background:#f2f5fa}.btn.primary{background:#186bda;color:white;border-color:#186bda}.btn.primary:hover{background:#105aba}.btn.danger{color:#ad3041}
+    .status{font-size:12px;color:#4e627d;min-height:18px;max-width:340px;padding:7px 9px;border-radius:8px;background:#f3f6fb}.status[data-state="success"]{color:#12633c;background:#e9f8ef}.status[data-state="error"]{color:#a12837;background:#fff0f1}
     .layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:18px;padding:18px;height:calc(100vh - 68px);min-height:520px}
-    aside{background:#fff;border:1px solid #dfe4ee;border-radius:14px;padding:20px;overflow:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:750;color:#64738c;margin:0 0 9px}.intro{font-size:14px;line-height:1.55;color:#53627b;margin:0 0 20px}.group{border-top:1px solid #e8ecf2;padding:17px 0}.group h2{font-size:14px;margin:0 0 8px}.group p{font-size:12px;line-height:1.5;color:#66748b;margin:0 0 11px}.group .btn{width:100%;text-align:left;margin:4px 0}.selected-link{font-weight:650;color:#394862!important;overflow-wrap:anywhere}.note{font-size:12px;line-height:1.5;background:#f4f7fc;border-radius:9px;padding:11px;color:#5b6980;margin-top:14px}.status{font-size:12px;color:#4e627d;min-height:18px;margin-top:12px}
+    aside{background:#fff;border:1px solid #dfe4ee;border-radius:14px;padding:20px;overflow:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:750;color:#64738c;margin:0 0 9px}.intro{font-size:14px;line-height:1.55;color:#53627b;margin:0 0 20px}.group{border-top:1px solid #e8ecf2;padding:17px 0}.group h2{font-size:14px;margin:0 0 8px}.group p{font-size:12px;line-height:1.5;color:#66748b;margin:0 0 11px}.group .btn{width:100%;text-align:left;margin:4px 0}.selected-link{font-weight:650;color:#394862!important;overflow-wrap:anywhere}.note{font-size:12px;line-height:1.5;background:#f4f7fc;border-radius:9px;padding:11px;color:#5b6980;margin-top:14px}
     .preview{overflow:hidden;border:1px solid #dfe4ee;border-radius:14px;background:#dfe4ee;display:flex;flex-direction:column}.preview-head{height:43px;flex:none;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;color:#68758a;font-size:12px;border-bottom:1px solid #dfe4ee}.preview iframe{width:100%;height:100%;border:0;background:#0A0E17}
     .dialog{position:fixed;inset:0;background:#15213a88;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.dialog.open{display:flex}.box{background:white;border-radius:14px;padding:23px;width:min(560px,100%);max-height:90vh;overflow:auto;box-shadow:0 22px 65px #09163244}.box h2{font-size:20px;margin:0 0 17px}.fields{display:grid;gap:12px}.fields label{font-size:12px;font-weight:700;color:#4e5d75;display:grid;gap:6px}.fields input,.fields textarea{width:100%;border:1px solid #d6deea;border-radius:8px;padding:10px 11px;color:#172033;background:#fff}.fields textarea{min-height:76px;resize:vertical}.form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
     @media(max-width:900px){.layout{grid-template-columns:1fr;height:auto}.preview{height:72vh}aside{order:0}.actions .optional{display:none}}
@@ -26,6 +27,7 @@
       <button class="btn" id="save">Save draft</button>
       <button class="btn" id="github-settings">Connect GitHub</button>
       <button class="btn primary" id="publish">Publish to GitHub</button>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
       <button class="btn primary" id="download">Download updated portfolio</button>
     </div>
   </header>
@@ -69,7 +71,6 @@
         <button class="btn" id="remove-project-link">Remove project link</button>
       </div>
       <div class="note"><strong>Automatic publishing:</strong> connect GitHub once in this browser tab. After you pause editing, the editor publishes your changes to GitHub. GitHub Pages then updates the live portfolio. The <em>Publish to GitHub</em> button is available for immediate publishing.</div>
-      <div class="status" id="status" role="status"></div>
     </aside>
     <section class="preview" aria-label="Portfolio preview">
       <div class="preview-head"><span>Preview · click text to edit</span><span id="mode">Loading…</span></div>
@@ -126,7 +127,10 @@
       let selectedLink = null;
       let currentSource = 'live';
       let autoPublishTimer = null;
-      const say = message => { status.textContent = message; };
+      const say = message => {
+        status.textContent = message;
+        status.dataset.state = /Published to GitHub/i.test(message) ? 'success' : /(could not|rejected|not allowed|failed|needs contents|connect github)/i.test(message) ? 'error' : '';
+      };
       function scheduleAutoPublish() {
         clearTimeout(autoPublishTimer);
         try { localStorage.setItem(DRAFT_KEY, frame.contentDocument.documentElement.outerHTML); } catch (error) {}
@@ -198,7 +202,10 @@
       const draft = localStorage.getItem(DRAFT_KEY);
       if (draft) {
         currentSource = 'draft';
-        frame.onload = prepareFrame;
+        frame.onload = () => {
+          prepareFrame();
+          if (sessionStorage.getItem(TOKEN_KEY)) scheduleAutoPublish();
+        };
         frame.srcdoc = draft;
         mode.textContent = 'Saved draft';
         say('Saved draft restored.');
