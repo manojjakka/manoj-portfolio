@@ -12,11 +12,29 @@
     .actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.btn{border:1px solid #d5dce8;background:white;color:#24314a;padding:9px 13px;border-radius:9px;font-weight:650;font-size:13px}.btn:hover{background:#f2f5fa}.btn.primary{background:#186bda;color:white;border-color:#186bda}.btn.primary:hover{background:#105aba}.btn.danger{color:#ad3041}
     .status{position:fixed;top:78px;right:16px;z-index:20;font-size:13px;color:#4e627d;max-width:min(380px,calc(100vw - 32px));padding:10px 13px;border:1px solid #dfe4ee;border-radius:9px;background:#fff;box-shadow:0 8px 26px #17203322}.status:empty{display:none}.status[data-state="success"]{color:#12633c;background:#e9f8ef;border-color:#bce7ca}.status[data-state="error"]{color:#a12837;background:#fff0f1;border-color:#f2c4ca}
     .layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:18px;padding:18px;height:calc(100vh - 68px);min-height:520px}
+    .mobile-tabs{display:none}
     aside{background:#fff;border:1px solid #dfe4ee;border-radius:14px;padding:20px;overflow:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:750;color:#64738c;margin:0 0 9px}.intro{font-size:14px;line-height:1.55;color:#53627b;margin:0 0 20px}.group{border-top:1px solid #e8ecf2;padding:17px 0}.group h2{font-size:14px;margin:0 0 8px}.group p{font-size:12px;line-height:1.5;color:#66748b;margin:0 0 11px}.group .btn{width:100%;text-align:left;margin:4px 0}.selected-link{font-weight:650;color:#394862!important;overflow-wrap:anywhere}.note{font-size:12px;line-height:1.5;background:#f4f7fc;border-radius:9px;padding:11px;color:#5b6980;margin-top:14px}
     .preview{overflow:hidden;border:1px solid #dfe4ee;border-radius:14px;background:#dfe4ee;display:flex;flex-direction:column}.preview-head{height:43px;flex:none;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;color:#68758a;font-size:12px;border-bottom:1px solid #dfe4ee}.preview iframe{width:100%;height:100%;border:0;background:#0A0E17}
     .dialog{position:fixed;inset:0;background:#15213a88;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.dialog.open{display:flex}.box{background:white;border-radius:14px;padding:23px;width:min(560px,100%);max-height:90vh;overflow:auto;box-shadow:0 22px 65px #09163244}.box h2{font-size:20px;margin:0 0 17px}.fields{display:grid;gap:12px}.fields label{font-size:12px;font-weight:700;color:#4e5d75;display:grid;gap:6px}.fields input,.fields textarea{width:100%;border:1px solid #d6deea;border-radius:8px;padding:10px 11px;color:#172033;background:#fff}.fields textarea{min-height:76px;resize:vertical}.form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
     @media(max-width:900px){.layout{grid-template-columns:1fr;height:auto}.preview{height:72vh}aside{order:0}.actions .optional{display:none}}
-    @media(max-width:600px){.topbar{height:auto;min-height:68px;align-items:flex-start;gap:12px;padding:12px;flex-direction:column}.layout{padding:10px;gap:10px}.actions{width:100%}.actions .btn{flex:1;padding:8px 9px}.preview{height:68vh}}
+    @media(max-width:700px){
+      .topbar{height:auto;min-height:0;align-items:flex-start;gap:10px;padding:11px 12px;flex-direction:column}
+      .brand{font-size:15px}.brand small{font-size:11px}
+      .actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+      .actions .btn{width:100%;min-height:44px;padding:8px;font-size:12px}
+      .layout{display:block;height:auto;min-height:0;padding:10px 10px 78px}
+      .mobile-tabs{position:fixed;display:grid;grid-template-columns:1fr 1fr;left:0;right:0;bottom:0;z-index:8;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #dfe4ee;box-shadow:0 -5px 18px #17203312}
+      .mobile-tabs button{min-height:46px;border:1px solid #d5dce8;border-radius:9px;background:#fff;color:#24314a;font-weight:700}
+      .mobile-tabs button[aria-selected="true"]{background:#186bda;color:#fff;border-color:#186bda}
+      #editor-layout[data-mobile-view="edit"] .preview{display:none}
+      #editor-layout[data-mobile-view="preview"] aside{display:none}
+      aside{overflow:visible;padding:16px}
+      .preview{height:calc(100dvh - 210px);min-height:360px;border-radius:12px}
+      .preview iframe{min-height:0}
+      .status{top:auto;right:8px;bottom:72px;max-width:calc(100vw - 16px);font-size:12px}
+      .box{padding:18px;max-height:calc(100dvh - 32px)}
+      .fields input,.fields textarea{font-size:16px}
+    }
   </style>
 </head>
 <body>
@@ -31,7 +49,11 @@
     </div>
   </header>
   <div class="status" id="status" role="status" aria-live="polite"></div>
-  <main class="layout">
+  <nav class="mobile-tabs" aria-label="Editor mobile navigation">
+    <button type="button" data-view="edit" aria-selected="true">Edit</button>
+    <button type="button" data-view="preview" aria-selected="false">Preview</button>
+  </nav>
+  <main class="layout" id="editor-layout" data-mobile-view="edit">
     <aside>
       <p class="eyebrow">Edit your page</p>
       <p class="intro">Click any words in the preview and type, just like editing a document. Connect GitHub once and your changes publish automatically after you pause editing.</p>
@@ -123,6 +145,7 @@
       const status = document.getElementById('status');
       const mode = document.getElementById('mode');
       const API_ROOT = 'https://api.github.com/repos/manojjakka/manoj-portfolio';
+      const layout = document.getElementById('editor-layout');
       let selected = null;
       let selectedLink = null;
       let currentSource = 'live';
@@ -131,6 +154,14 @@
         status.textContent = message;
         status.dataset.state = /Published to GitHub/i.test(message) ? 'success' : /(could not|rejected|not allowed|failed|needs contents|GitHub returned|Connect GitHub to)/i.test(message) ? 'error' : '';
       };
+      document.querySelectorAll('.mobile-tabs [data-view]').forEach(tab => {
+        tab.addEventListener('click', () => {
+          layout.dataset.mobileView = tab.dataset.view;
+          document.querySelectorAll('.mobile-tabs [data-view]').forEach(item => {
+            item.setAttribute('aria-selected', String(item === tab));
+          });
+        });
+      });
       function scheduleAutoPublish() {
         clearTimeout(autoPublishTimer);
         try { localStorage.setItem(DRAFT_KEY, frame.contentDocument.documentElement.outerHTML); } catch (error) {}
