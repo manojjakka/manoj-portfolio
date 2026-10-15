@@ -64,7 +64,7 @@
       <div class="group">
         <h2>Project link</h2>
         <p>Click a project card, then add or update its repository or demo URL.</p>
-        <div class="fields"><label for="project-url">Project URL</label><input id="project-url" type="text" placeholder="https://github.com/…"></div>
+        <div class="fields"><label for="project-url">Project URL</label><p class="selected-link" id="selected-project">No project selected yet. Click a project card in the preview.</p><input id="project-url" type="text" placeholder="https://github.com/…"></div>
         <button class="btn" id="apply-project-link">Set link on selected project</button>
         <button class="btn" id="remove-project-link">Remove project link</button>
       </div>
@@ -131,7 +131,9 @@
         doc.body.contentEditable = 'true';
         doc.body.spellcheck = true;
         doc.addEventListener('click', event => {
-          const link = event.target.closest('a');
+          const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+          if (!target) return;
+          const link = target.closest('a');
           if (link) {
             event.preventDefault();
             if (selectedLink) selectedLink.removeAttribute('data-editor-link-selected');
@@ -141,13 +143,19 @@
             document.getElementById('selected-link').textContent = `Selected: ${link.textContent.trim() || 'link'}`;
             say('Link selected. Change its destination in the field.');
           }
-          const card = event.target.closest('.model-card, .cert-item');
+          const card = target.closest('.model-card, .cert-item');
           if (selected) selected.removeAttribute('data-editor-selected');
           selected = card;
           if (selected) selected.setAttribute('data-editor-selected', 'true');
           if (selected && selected.classList.contains('model-card')) {
             const projectLink = selected.querySelector('.mc-stack a');
             document.getElementById('project-url').value = projectLink?.getAttribute('href') || '';
+            document.getElementById('selected-project').textContent = `Selected project: ${selected.querySelector('h3')?.textContent.trim() || 'Project'}`;
+            say('Project selected. Enter its URL in Project link.');
+          } else if (selected && selected.classList.contains('cert-item')) {
+            document.getElementById('selected-project').textContent = 'A certification is selected. Click a project card to add a project URL.';
+          } else {
+            document.getElementById('selected-project').textContent = 'No project selected yet. Click a project card in the preview.';
           }
         });
         const style = doc.createElement('style');
@@ -374,6 +382,26 @@
         document.getElementById('selected-link').textContent = `Selected: ${anchor.textContent.trim()}`;
         say('Project link added to the selected card. Publish to GitHub when ready to make it live.');
       });
+      document.getElementById('project-url').addEventListener('input', event => {
+        if (!selected || !selected.classList.contains('model-card') || !selected.isConnected) {
+          document.getElementById('selected-project').textContent = 'Click a project card in the preview first.';
+          return say('Select the project card in the preview before entering its URL.');
+        }
+        const destination = event.currentTarget.value.trim();
+        if (!destination || /^(javascript|data):/i.test(destination)) return;
+        const stack = selected.querySelector('.mc-stack');
+        if (!stack) return say('Could not find the project link area.');
+        let anchor = stack.querySelector('a');
+        if (!anchor) {
+          let paragraph = stack.querySelector('p');
+          if (!paragraph) { paragraph = frame.contentDocument.createElement('p'); paragraph.style.marginTop = '14px'; stack.append(paragraph); }
+          anchor = frame.contentDocument.createElement('a');
+          anchor.className = 'project-link mono'; anchor.style.color = 'var(--accent)'; anchor.style.fontSize = '13px';
+          anchor.textContent = 'Project Repository ↗'; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; paragraph.append(anchor);
+        }
+        anchor.href = destination; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
+        say('Project link updated in the preview. Publish to GitHub when ready to make it live.');
+      });
       document.getElementById('remove-project-link').addEventListener('click', () => {
         if (!selected || !selected.classList.contains('model-card') || !selected.isConnected) return say('Click a project card in the preview first.');
         const anchor = selected.querySelector('.mc-stack a');
@@ -387,3 +415,4 @@
   </script>
 </body>
 </html>
+
