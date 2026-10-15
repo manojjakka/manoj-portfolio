@@ -191,7 +191,7 @@
         currentSource = 'live';
         frame.onload = prepareFrame;
         frame.removeAttribute('srcdoc');
-        frame.src = 'index.html';
+        frame.src = `index.html?editor_refresh=${Date.now()}`;
       }
       const draft = localStorage.getItem(DRAFT_KEY);
       if (draft) {
@@ -289,7 +289,9 @@
             const details = await response.json().catch(() => ({}));
             throw new Error(response.status === 409 || response.status === 422 ? 'GitHub changed since this page loaded. Reload the editor, restore your saved draft, and publish again.' : details.message || `GitHub could not publish this update (${response.status}).`);
           }
-          localStorage.setItem(DRAFT_KEY, html);
+          // Keep the local draft only until GitHub accepts the update. On the
+          // next editor visit, load the published copy from GitHub Pages.
+          localStorage.removeItem(DRAFT_KEY);
           mode.textContent = 'Published to GitHub';
           say('Published to GitHub. GitHub Pages is updating your live portfolio now.');
         } catch (error) { say(error.message || 'Could not publish. Check your connection and token permissions.'); }
