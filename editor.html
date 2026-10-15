@@ -114,7 +114,9 @@
 
   <script>
     (() => {
-      const DRAFT_KEY = 'manoj-portfolio-editor-draft-v1';
+      // v2 stores only edits made after the auto-publish editor was installed.
+      // Ignore the v1 snapshot because it may be an older already-published page.
+      const DRAFT_KEY = 'manoj-portfolio-editor-draft-v2';
       const TOKEN_KEY = 'manoj-portfolio-github-token';
       const frame = document.getElementById('page');
       const status = document.getElementById('status');
