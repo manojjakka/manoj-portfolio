@@ -52,6 +52,13 @@
         <div class="fields"><label for="link-url">Link destination</label><input id="link-url" type="text" placeholder="https://… · mailto:… · tel:…"></div>
         <button class="btn" id="apply-link">Update selected link</button>
       </div>
+      <div class="group">
+        <h2>Certification link</h2>
+        <p>Click a certification card, then add or update its credential URL.</p>
+        <div class="fields"><label for="cert-url">Certificate URL</label><input id="cert-url" type="text" placeholder="https://credential.example/…"></div>
+        <button class="btn" id="apply-cert-link">Set link on selected certification</button>
+        <button class="btn" id="remove-cert-link">Remove certification link</button>
+      </div>
       <div class="note"><strong>To publish:</strong> download the updated portfolio, open your GitHub repository, upload the downloaded <code>index.html</code> and commit the change. GitHub Pages will update the live site.</div>
       <div class="status" id="status" role="status"></div>
     </aside>
@@ -68,6 +75,7 @@
         <label>Certification name<input name="name" required placeholder="e.g. Cloud Practitioner" autofocus></label>
         <label>Organization<input name="org" placeholder="e.g. Amazon Web Services"></label>
         <label>Date or year<input name="date" placeholder="e.g. Oct 2026"></label>
+        <label>Certificate URL (optional)<input name="url" type="text" placeholder="https://credential.example/…"></label>
       </div>
       <div class="form-actions"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit">Add to page</button></div>
     </form>
@@ -182,7 +190,9 @@
         if (!list) return say('Could not find the Certifications section in the preview.');
         const item = doc.createElement('div'); item.className = 'cert-item';
         const left = doc.createElement('div');
-        const name = doc.createElement('div'); name.className = 'c-name'; name.textContent = values.get('name');
+        const url = String(values.get('url') || '').trim();
+        const name = doc.createElement(url ? 'a' : 'div'); name.className = 'c-name'; name.textContent = values.get('name');
+        if (url && !/^(javascript|data):/i.test(url)) { name.href = url; name.target = '_blank'; name.rel = 'noopener noreferrer'; }
         const org = doc.createElement('div'); org.className = 'c-org'; org.textContent = values.get('org') || 'Organization';
         const date = doc.createElement('span'); date.className = 'c-date'; date.textContent = values.get('date') || 'Year';
         left.append(name, org); item.append(left, date); list.append(item);
@@ -216,6 +226,30 @@
         if (/^(javascript|data):/i.test(destination)) return say('That link destination is not allowed.');
         selectedLink.setAttribute('href', destination);
         say('Link destination updated in the draft.');
+      });
+      document.getElementById('apply-cert-link').addEventListener('click', () => {
+        if (!selected || !selected.classList.contains('cert-item') || !selected.isConnected) return say('Click a certification card in the preview first.');
+        const destination = document.getElementById('cert-url').value.trim();
+        if (!destination) return say('Enter the certificate URL.');
+        if (/^(javascript|data):/i.test(destination)) return say('That link destination is not allowed.');
+        const name = selected.querySelector('.c-name');
+        if (!name) return say('Could not find the certification name.');
+        let anchor = name;
+        if (name.tagName !== 'A') {
+          anchor = frame.contentDocument.createElement('a');
+          anchor.className = name.className;
+          anchor.textContent = name.textContent;
+          name.replaceWith(anchor);
+        }
+        anchor.href = destination; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
+        say('Certificate link added to the selected certification.');
+      });
+      document.getElementById('remove-cert-link').addEventListener('click', () => {
+        if (!selected || !selected.classList.contains('cert-item') || !selected.isConnected) return say('Click a certification card in the preview first.');
+        const anchor = selected.querySelector('a.c-name');
+        if (!anchor) return say('The selected certification does not have a link.');
+        const label = frame.contentDocument.createElement('div'); label.className = anchor.className; label.textContent = anchor.textContent;
+        anchor.replaceWith(label); say('Certificate link removed.');
       });
     })();
   </script>
