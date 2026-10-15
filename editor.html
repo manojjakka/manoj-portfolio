@@ -131,7 +131,9 @@
         doc.body.contentEditable = 'true';
         doc.body.spellcheck = true;
         doc.addEventListener('click', event => {
-          const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+          // The preview is an iframe, so its Element constructor belongs to a
+          // different browser realm. Use nodeType instead of instanceof.
+          const target = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
           if (!target) return;
           const link = target.closest('a');
           if (link) {
