@@ -124,6 +124,11 @@
       let selectedLink = null;
       let currentSource = 'live';
       const say = message => { status.textContent = message; };
+      function clearSelectedLink() {
+        if (selectedLink) selectedLink.removeAttribute('data-editor-link-selected');
+        selectedLink = null;
+        document.getElementById('selected-link').textContent = 'No link selected yet.';
+      }
 
       function prepareFrame() {
         const doc = frame.contentDocument;
@@ -330,6 +335,7 @@
         if (!destination) return say('Enter a link destination.');
         if (/^(javascript|data):/i.test(destination)) return say('That link destination is not allowed.');
         selectedLink.setAttribute('href', destination);
+        clearSelectedLink();
         say('Link destination applied to the preview. Publish to GitHub when ready to make it live.');
       });
       document.getElementById('link-url').addEventListener('input', event => {
@@ -379,9 +385,8 @@
           anchor.textContent = 'Project Repository ↗'; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; paragraph.append(anchor);
         }
         anchor.href = destination; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
-        selectedLink = anchor; anchor.setAttribute('data-editor-link-selected', 'true');
         document.getElementById('link-url').value = destination;
-        document.getElementById('selected-link').textContent = `Selected: ${anchor.textContent.trim()}`;
+        clearSelectedLink();
         say('Project link added to the selected card. Publish to GitHub when ready to make it live.');
       });
       document.getElementById('project-url').addEventListener('input', event => {
