@@ -20,7 +20,7 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">Portfolio Editor<small>Manoj Kumar · edits stay in this browser until exported</small></div>
+    <div class="brand">Portfolio Editor<small>Manoj Kumar · edits publish automatically when GitHub is connected</small></div>
     <div class="actions">
       <button class="btn optional" id="restore">Restore live copy</button>
       <button class="btn" id="save">Save draft</button>
@@ -32,7 +32,7 @@
   <main class="layout">
     <aside>
       <p class="eyebrow">Edit your page</p>
-      <p class="intro">Click any words in the preview and type, just like editing a document. Your changes here are private until you download and publish them.</p>
+      <p class="intro">Click any words in the preview and type, just like editing a document. Connect GitHub once and your changes publish automatically after you pause editing.</p>
       <div class="group">
         <h2>Add a certification</h2>
         <p>Add a new row to the Certifications list. Click the row afterwards to edit it directly.</p>
@@ -68,7 +68,7 @@
         <button class="btn" id="apply-project-link">Set link on selected project</button>
         <button class="btn" id="remove-project-link">Remove project link</button>
       </div>
-      <div class="note"><strong>Publish directly:</strong> connect GitHub once, then choose <em>Publish to GitHub</em> whenever your edits are ready. GitHub Pages will deploy the update. Your access token stays in this browser tab and is cleared when the tab closes.</div>
+      <div class="note"><strong>Automatic publishing:</strong> connect GitHub once in this browser tab. After you pause editing, the editor publishes your changes to GitHub. GitHub Pages then updates the live portfolio. The <em>Publish to GitHub</em> button is available for immediate publishing.</div>
       <div class="status" id="status" role="status"></div>
     </aside>
     <section class="preview" aria-label="Portfolio preview">
@@ -123,7 +123,21 @@
       let selected = null;
       let selectedLink = null;
       let currentSource = 'live';
+      let autoPublishTimer = null;
       const say = message => { status.textContent = message; };
+      function scheduleAutoPublish() {
+        clearTimeout(autoPublishTimer);
+        try { localStorage.setItem(DRAFT_KEY, frame.contentDocument.documentElement.outerHTML); } catch (error) {}
+        if (!sessionStorage.getItem(TOKEN_KEY)) {
+          say('Draft saved in this browser. Connect GitHub to publish changes automatically.');
+          return;
+        }
+        say('Change ready. Publishing automatically after you pause editing…');
+        autoPublishTimer = setTimeout(() => {
+          const button = document.getElementById('publish');
+          if (!button.disabled) button.click();
+        }, 1800);
+      }
       function clearSelectedLink() {
         if (selectedLink) selectedLink.removeAttribute('data-editor-link-selected');
         selectedLink = null;
@@ -135,6 +149,7 @@
         if (!doc || !doc.body) return;
         doc.body.contentEditable = 'true';
         doc.body.spellcheck = true;
+        doc.addEventListener('input', scheduleAutoPublish);
         doc.addEventListener('click', event => {
           // The preview is an iframe, so its Element constructor belongs to a
           // different browser realm. Use nodeType instead of instanceof.
@@ -219,7 +234,8 @@
           sessionStorage.setItem(TOKEN_KEY, token);
           document.getElementById('github-settings').textContent = 'GitHub connected';
           document.getElementById('github-dialog').classList.remove('open');
-          form.reset(); say('GitHub connected for this browser tab.');
+          form.reset(); say('GitHub connected. Your edits will publish automatically.');
+          scheduleAutoPublish();
         } catch (error) { say(error.message || 'Could not connect to GitHub. Check the token permissions and try again.'); }
         finally { submit.disabled = false; submit.textContent = 'Connect'; }
       });
@@ -299,7 +315,7 @@
         const date = doc.createElement('span'); date.className = 'c-date'; date.textContent = values.get('date') || 'Year';
         left.append(name, org); item.append(left, date); list.append(item);
         event.currentTarget.reset(); document.getElementById('cert-dialog').classList.remove('open');
-        say('Certification added. Click its text in the preview to make changes.');
+        say('Certification added. Click its text in the preview to make changes.'); scheduleAutoPublish();
       });
       document.getElementById('add-project').addEventListener('click', () => openDialog('project-dialog'));
       document.getElementById('project-form').addEventListener('submit', event => {
@@ -321,13 +337,13 @@
           paragraph.append(anchor); stack.append(paragraph);
         }
         list.append(card); event.currentTarget.reset(); document.getElementById('project-dialog').classList.remove('open');
-        say('Project added. Click any text in its card to edit.');
+        say('Project added. Click any text in its card to edit.'); scheduleAutoPublish();
       });
       document.getElementById('remove').addEventListener('click', () => {
         if (!selected || !selected.isConnected) return say('Click a project or certification card in the preview first.');
         const kind = selected.classList.contains('model-card') ? 'Project' : 'Certification';
         if (!confirm(`Remove this ${kind.toLowerCase()} from the portfolio?`)) return;
-        selected.remove(); selected = null; say(`${kind} removed from the draft.`);
+        selected.remove(); selected = null; say(`${kind} removed from the draft.`); scheduleAutoPublish();
       });
       document.getElementById('apply-link').addEventListener('click', () => {
         if (!selectedLink || !selectedLink.isConnected) return say('Click a link in the preview first.');
@@ -337,6 +353,7 @@
         selectedLink.setAttribute('href', destination);
         clearSelectedLink();
         say('Link destination applied to the preview. Publish to GitHub when ready to make it live.');
+        scheduleAutoPublish();
       });
       document.getElementById('link-url').addEventListener('input', event => {
         if (!selectedLink || !selectedLink.isConnected) return;
@@ -344,6 +361,7 @@
         if (!destination || /^(javascript|data):/i.test(destination)) return;
         selectedLink.setAttribute('href', destination);
         say('Preview link updated. Publish to GitHub when ready to make it live.');
+        scheduleAutoPublish();
       });
       document.getElementById('apply-cert-link').addEventListener('click', () => {
         if (!selected || !selected.classList.contains('cert-item') || !selected.isConnected) return say('Click a certification card in the preview first.');
@@ -361,13 +379,14 @@
         }
         anchor.href = destination; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
         say('Certificate link added to the selected certification.');
+        scheduleAutoPublish();
       });
       document.getElementById('remove-cert-link').addEventListener('click', () => {
         if (!selected || !selected.classList.contains('cert-item') || !selected.isConnected) return say('Click a certification card in the preview first.');
         const anchor = selected.querySelector('a.c-name');
         if (!anchor) return say('The selected certification does not have a link.');
         const label = frame.contentDocument.createElement('div'); label.className = anchor.className; label.textContent = anchor.textContent;
-        anchor.replaceWith(label); say('Certificate link removed.');
+        anchor.replaceWith(label); say('Certificate link removed.'); scheduleAutoPublish();
       });
       document.getElementById('apply-project-link').addEventListener('click', () => {
         if (!selected || !selected.classList.contains('model-card') || !selected.isConnected) return say('Click a project card in the preview first.');
@@ -388,6 +407,7 @@
         document.getElementById('link-url').value = destination;
         clearSelectedLink();
         say('Project link added to the selected card. Publish to GitHub when ready to make it live.');
+        scheduleAutoPublish();
       });
       document.getElementById('project-url').addEventListener('input', event => {
         if (!selected || !selected.classList.contains('model-card') || !selected.isConnected) {
@@ -408,6 +428,7 @@
         }
         anchor.href = destination; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer';
         say('Project link updated in the preview. Publish to GitHub when ready to make it live.');
+        scheduleAutoPublish();
       });
       document.getElementById('remove-project-link').addEventListener('click', () => {
         if (!selected || !selected.classList.contains('model-card') || !selected.isConnected) return say('Click a project card in the preview first.');
@@ -416,7 +437,7 @@
         const container = anchor.parentElement;
         anchor.remove();
         if (container.tagName === 'P' && !container.textContent.trim()) container.remove();
-        selectedLink = null; say('Project link removed.');
+        selectedLink = null; say('Project link removed.'); scheduleAutoPublish();
       });
     })();
   </script>
