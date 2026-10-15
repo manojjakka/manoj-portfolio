@@ -11,7 +11,7 @@
     .brand{font-weight:750;font-size:16px}.brand small{display:block;color:#71809b;font-weight:450;font-size:12px;margin-top:2px}
     .actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.btn{border:1px solid #d5dce8;background:white;color:#24314a;padding:9px 13px;border-radius:9px;font-weight:650;font-size:13px}.btn:hover{background:#f2f5fa}.btn.primary{background:#186bda;color:white;border-color:#186bda}.btn.primary:hover{background:#105aba}.btn.danger{color:#ad3041}
     .layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:18px;padding:18px;height:calc(100vh - 68px);min-height:520px}
-    aside{background:#fff;border:1px solid #dfe4ee;border-radius:14px;padding:20px;overflow:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:750;color:#64738c;margin:0 0 9px}.intro{font-size:14px;line-height:1.55;color:#53627b;margin:0 0 20px}.group{border-top:1px solid #e8ecf2;padding:17px 0}.group h2{font-size:14px;margin:0 0 8px}.group p{font-size:12px;line-height:1.5;color:#66748b;margin:0 0 11px}.group .btn{width:100%;text-align:left;margin:4px 0}.note{font-size:12px;line-height:1.5;background:#f4f7fc;border-radius:9px;padding:11px;color:#5b6980;margin-top:14px}.status{font-size:12px;color:#4e627d;min-height:18px;margin-top:12px}
+    aside{background:#fff;border:1px solid #dfe4ee;border-radius:14px;padding:20px;overflow:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:750;color:#64738c;margin:0 0 9px}.intro{font-size:14px;line-height:1.55;color:#53627b;margin:0 0 20px}.group{border-top:1px solid #e8ecf2;padding:17px 0}.group h2{font-size:14px;margin:0 0 8px}.group p{font-size:12px;line-height:1.5;color:#66748b;margin:0 0 11px}.group .btn{width:100%;text-align:left;margin:4px 0}.selected-link{font-weight:650;color:#394862!important;overflow-wrap:anywhere}.note{font-size:12px;line-height:1.5;background:#f4f7fc;border-radius:9px;padding:11px;color:#5b6980;margin-top:14px}.status{font-size:12px;color:#4e627d;min-height:18px;margin-top:12px}
     .preview{overflow:hidden;border:1px solid #dfe4ee;border-radius:14px;background:#dfe4ee;display:flex;flex-direction:column}.preview-head{height:43px;flex:none;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;color:#68758a;font-size:12px;border-bottom:1px solid #dfe4ee}.preview iframe{width:100%;height:100%;border:0;background:#0A0E17}
     .dialog{position:fixed;inset:0;background:#15213a88;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.dialog.open{display:flex}.box{background:white;border-radius:14px;padding:23px;width:min(560px,100%);max-height:90vh;overflow:auto;box-shadow:0 22px 65px #09163244}.box h2{font-size:20px;margin:0 0 17px}.fields{display:grid;gap:12px}.fields label{font-size:12px;font-weight:700;color:#4e5d75;display:grid;gap:6px}.fields input,.fields textarea{width:100%;border:1px solid #d6deea;border-radius:8px;padding:10px 11px;color:#172033;background:#fff}.fields textarea{min-height:76px;resize:vertical}.form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
     @media(max-width:900px){.layout{grid-template-columns:1fr;height:auto}.preview{height:72vh}aside{order:0}.actions .optional{display:none}}
@@ -50,9 +50,9 @@
       </div>
       <div class="group">
         <h2>Change a link</h2>
-        <p>Click a link in the preview, enter its new destination, then apply it. Edit the link wording directly in the preview.</p>
-        <div class="fields"><label for="link-url">Link destination</label><input id="link-url" type="text" placeholder="https://… · mailto:… · tel:…"></div>
-        <button class="btn" id="apply-link">Update selected link</button>
+        <p>Click a link in the preview, then replace its destination below. The preview updates as you type. Edit the link wording directly in the preview.</p>
+        <div class="fields"><label for="link-url">Link destination</label><p class="selected-link" id="selected-link">No link selected yet.</p><input id="link-url" type="text" placeholder="https://… · mailto:… · tel:…"></div>
+        <button class="btn" id="apply-link">Apply link</button>
       </div>
       <div class="group">
         <h2>Certification link</h2>
@@ -130,7 +130,8 @@
             selectedLink = link;
             selectedLink.setAttribute('data-editor-link-selected', 'true');
             document.getElementById('link-url').value = link.getAttribute('href') || '';
-            say('Link selected. Change its destination in Link settings.');
+            document.getElementById('selected-link').textContent = `Selected: ${link.textContent.trim() || 'link'}`;
+            say('Link selected. Change its destination in the field.');
           }
           const card = event.target.closest('.model-card, .cert-item');
           if (selected) selected.removeAttribute('data-editor-selected');
@@ -299,7 +300,14 @@
         if (!destination) return say('Enter a link destination.');
         if (/^(javascript|data):/i.test(destination)) return say('That link destination is not allowed.');
         selectedLink.setAttribute('href', destination);
-        say('Link destination updated in the draft.');
+        say('Link destination applied to the preview. Publish to GitHub when ready to make it live.');
+      });
+      document.getElementById('link-url').addEventListener('input', event => {
+        if (!selectedLink || !selectedLink.isConnected) return;
+        const destination = event.currentTarget.value.trim();
+        if (!destination || /^(javascript|data):/i.test(destination)) return;
+        selectedLink.setAttribute('href', destination);
+        say('Preview link updated. Publish to GitHub when ready to make it live.');
       });
       document.getElementById('apply-cert-link').addEventListener('click', () => {
         if (!selected || !selected.classList.contains('cert-item') || !selected.isConnected) return say('Click a certification card in the preview first.');
