@@ -113,6 +113,20 @@
         <button class="btn" id="remove-cert-link">Remove certification link</button>
       </div>
       <div class="group">
+        <h2>Project highlight boxes</h2>
+        <p>Click a project card in the preview, then edit its two highlight rows here. Use project-specific labels and values; progress bars are optional.</p>
+        <p class="selected-link" id="selected-highlights">No project selected yet. Click a project card in the preview.</p>
+        <div class="fields">
+          <label>Highlight 1 label<input id="highlight-label-1" maxlength="32" placeholder="e.g. Assistant"></label>
+          <label>Highlight 1 value<input id="highlight-value-1" maxlength="64" placeholder="e.g. AI &amp; LLM"></label>
+          <label>Highlight 1 progress (optional, 0–100)<input id="highlight-bar-1" type="number" min="0" max="100" placeholder="Leave blank to hide the bar"></label>
+          <label>Highlight 2 label<input id="highlight-label-2" maxlength="32" placeholder="e.g. Interface"></label>
+          <label>Highlight 2 value<input id="highlight-value-2" maxlength="64" placeholder="e.g. Voice + chat"></label>
+          <label>Highlight 2 progress (optional, 0–100)<input id="highlight-bar-2" type="number" min="0" max="100" placeholder="Leave blank to hide the bar"></label>
+        </div>
+        <button class="btn" id="apply-project-highlights" type="button">Apply highlight boxes</button>
+      </div>
+      <div class="group">
         <h2>Project link</h2>
         <p>Click a project card, then add or update its repository or demo URL.</p>
         <div class="fields"><label for="project-url">Project URL</label><p class="selected-link" id="selected-project">No project selected yet. Click a project card in the preview.</p><input id="project-url" type="text" placeholder="https://github.com/…"></div>
@@ -148,6 +162,13 @@
         <label>Tools and technologies<input name="tools" placeholder="Python, Flask, MySQL"></label>
         <label>Repository or demo URL (optional)<input name="url" type="text" placeholder="https://github.com/…"></label>
         <label>Short description<textarea name="description" placeholder="What did you build? What does it do?"></textarea></label>
+        <p style="margin:4px 0 0;color:#59677e;font-size:12px">Each new project gets two highlight boxes. Use project-specific labels and values; progress bars are optional.</p>
+        <label>Highlight 1 label<input name="metric1Label" maxlength="32" placeholder="e.g. Assistant"></label>
+        <label>Highlight 1 value<input name="metric1Value" maxlength="64" placeholder="e.g. AI &amp; LLM"></label>
+        <label>Highlight 1 progress (optional, 0–100)<input name="metric1Percent" type="number" min="0" max="100" placeholder="Leave blank to hide the bar"></label>
+        <label>Highlight 2 label<input name="metric2Label" maxlength="32" placeholder="e.g. Interface"></label>
+        <label>Highlight 2 value<input name="metric2Value" maxlength="64" placeholder="e.g. Voice + chat"></label>
+        <label>Highlight 2 progress (optional, 0–100)<input name="metric2Percent" type="number" min="0" max="100" placeholder="Leave blank to hide the bar"></label>
       </div>
       <div class="form-actions"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit">Add to page</button></div>
     </form>
@@ -250,10 +271,16 @@
             const projectLink = selected.querySelector('.mc-stack a');
             document.getElementById('project-url').value = projectLink?.getAttribute('href') || '';
             document.getElementById('selected-project').textContent = `Selected project: ${selected.querySelector('h3')?.textContent.trim() || 'Project'}`;
-            say('Project selected. Enter its URL in Project link.');
+            document.getElementById('selected-highlights').textContent = `Selected project: ${selected.querySelector('h3')?.textContent.trim() || 'Project'}`;
+            populateProjectHighlights(selected);
+            say('Project selected. Edit its highlight boxes or project link.');
           } else if (selected && selected.classList.contains('cert-item')) {
+            clearProjectHighlights();
+            document.getElementById('selected-highlights').textContent = 'A certification is selected. Click a project card to edit its highlight boxes.';
             document.getElementById('selected-project').textContent = 'A certification is selected. Click a project card to add a project URL.';
           } else {
+            clearProjectHighlights();
+            document.getElementById('selected-highlights').textContent = 'No project selected yet. Click a project card in the preview.';
             document.getElementById('selected-project').textContent = 'No project selected yet. Click a project card in the preview.';
           }
         });
@@ -265,7 +292,7 @@
         mode.textContent = 'Editing enabled';
       }
 
-      const LAUNCHPAD_STARTER = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Portfolio</title><style>:root{--bg:#0A0E17;--surface:#121B31;--line:#212D48;--text:#EDEFF5;--muted:#93A0BC;--accent:#4FD8C9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,Arial,sans-serif;padding:0 7vw 60px}.hero{padding:14vh 0 9vh;border-bottom:1px solid var(--line)}.eyebrow,.mc-eyebrow{font:11px monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(38px,7vw,76px);line-height:1.02;max-width:850px;margin:18px 0}h2{font-size:30px;margin:50px 0 20px}p,.mc-org{color:var(--muted)}.hero p{max-width:620px}.projects-list,.cert-list{display:grid;gap:14px}.skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.skill-card{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.sk-head{display:flex;align-items:center;gap:12px}.sk-head h3{margin:0;font-size:18px}.sk-icon{display:grid;place-items:center;width:40px;height:40px;flex:none;border:1px solid var(--line);border-radius:10px;color:var(--accent);background:#0d1628;font:15px monospace}.tag-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}.model-card,.cert-item{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.mc-head{display:flex;justify-content:space-between;gap:12px}.mc-head h3{margin:8px 0}.mc-stack{margin-top:16px;color:var(--accent)}.tag{display:inline-block;padding:5px 9px;border:1px solid var(--line);border-radius:7px;color:var(--muted);margin:4px;font-size:12px}.cert-item{display:flex;justify-content:space-between;gap:14px}.c-name{font-weight:700}.c-org,.c-date{font-size:12px;color:var(--muted)}a{color:var(--accent)}</style></head><body><header class="hero"><div class="eyebrow">Your portfolio</div><h1>Your name goes here.</h1><p>Add a short introduction about your target role, your interests, and the work you want people to see.</p></header><section><h2>About</h2><p>Replace this text with a short, accurate introduction.</p></section><section><h2>Projects</h2><div class="projects-list"></div></section><section><h2>Skills &amp; Technologies</h2><div class="skills-grid"><article class="skill-card"><div class="sk-head"><span class="sk-icon">◇</span><h3>Technical Skills</h3></div><div class="tag-row"></div></article></div></section><section><h2>Certifications</h2><div class="cert-list"></div></section><section><h2>Resume</h2><p><a href="resume.pdf" download>View / download resume</a></p></section><section><h2>Contact</h2><p>Add links you want people to use to reach you.</p></section></body></html>`;
+      const LAUNCHPAD_STARTER = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Portfolio</title><style>:root{--bg:#0A0E17;--surface:#121B31;--line:#212D48;--text:#EDEFF5;--muted:#93A0BC;--accent:#4FD8C9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,Arial,sans-serif;padding:0 7vw 60px}.hero{padding:14vh 0 9vh;border-bottom:1px solid var(--line)}.eyebrow,.mc-eyebrow{font:11px monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(38px,7vw,76px);line-height:1.02;max-width:850px;margin:18px 0}h2{font-size:30px;margin:50px 0 20px}p,.mc-org{color:var(--muted)}.hero p{max-width:620px}.projects-list,.cert-list{display:grid;gap:14px}.skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.skill-card{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.sk-head{display:flex;align-items:center;gap:12px}.sk-head h3{margin:0;font-size:18px}.sk-icon{display:grid;place-items:center;width:40px;height:40px;flex:none;border:1px solid var(--line);border-radius:10px;color:var(--accent);background:#0d1628;font:15px monospace}.tag-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}.model-card,.cert-item{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.mc-head{display:flex;justify-content:space-between;gap:12px}.mc-head h3{margin:8px 0}.mc-stack{margin-top:16px;color:var(--accent)}.mc-metrics{display:grid;gap:14px;padding:20px;border:1px solid var(--line);border-radius:12px;background:#0e1729}.metric-row{display:grid;gap:8px}.metric-top{display:flex;justify-content:space-between;gap:12px}.m-label{color:var(--muted)}.m-value{color:var(--text);font-weight:700}.metric-track{height:6px;overflow:hidden;border-radius:999px;background:#202b43}.metric-fill{height:100%;border-radius:inherit;background:var(--accent)}.mc-stack{margin-top:16px;color:var(--accent)}.tag{display:inline-block;padding:5px 9px;border:1px solid var(--line);border-radius:7px;color:var(--muted);margin:4px;font-size:12px}.cert-item{display:flex;justify-content:space-between;gap:14px}.c-name{font-weight:700}.c-org,.c-date{font-size:12px;color:var(--muted)}a{color:var(--accent)}</style></head><body><header class="hero"><div class="eyebrow">Your portfolio</div><h1>Your name goes here.</h1><p>Add a short introduction about your target role, your interests, and the work you want people to see.</p></header><section><h2>About</h2><p>Replace this text with a short, accurate introduction.</p></section><section><h2>Projects</h2><div class="projects-list"></div></section><section><h2>Skills &amp; Technologies</h2><div class="skills-grid"><article class="skill-card"><div class="sk-head"><span class="sk-icon">◇</span><h3>Technical Skills</h3></div><div class="tag-row"></div></article></div></section><section><h2>Certifications</h2><div class="cert-list"></div></section><section><h2>Resume</h2><p><a href="resume.pdf" download>View / download resume</a></p></section><section><h2>Contact</h2><p>Add links you want people to use to reach you.</p></section></body></html>`;
 
       function loadLive() {
         if (launchpadMode) {
@@ -465,6 +492,39 @@
 
       const openDialog = id => document.getElementById(id).classList.add('open');
 
+      function clearProjectHighlights() {
+        for (const id of ['highlight-label-1','highlight-value-1','highlight-bar-1','highlight-label-2','highlight-value-2','highlight-bar-2']) {
+          document.getElementById(id).value = '';
+        }
+      }
+      function populateProjectHighlights(card) {
+        clearProjectHighlights();
+        const rows = [...card.querySelectorAll('.mc-metrics .metric-row')];
+        rows.slice(0, 2).forEach((row, index) => {
+          const n = index + 1;
+          document.getElementById(`highlight-label-${n}`).value = row.querySelector('.m-label')?.textContent.trim() || '';
+          document.getElementById(`highlight-value-${n}`).value = row.querySelector('.m-value')?.textContent.trim() || '';
+          const fill = row.querySelector('.metric-fill');
+          document.getElementById(`highlight-bar-${n}`).value = fill?.dataset.width || fill?.style.width?.replace('%','') || '';
+        });
+      }
+      function createProjectMetrics(doc, entries) {
+        const panel = doc.createElement('div'); panel.className = 'mc-metrics';
+        entries.slice(0, 2).forEach(entry => {
+          const row = doc.createElement('div'); row.className = 'metric-row';
+          const top = doc.createElement('div'); top.className = 'metric-top';
+          const label = doc.createElement('span'); label.className = 'm-label'; label.textContent = entry.label;
+          const value = doc.createElement('span'); value.className = 'm-value'; value.textContent = entry.value;
+          top.append(label, value); row.append(top);
+          if (entry.percent !== '' && Number.isFinite(Number(entry.percent)) && Number(entry.percent) >= 0 && Number(entry.percent) <= 100) {
+            const track = doc.createElement('div'); track.className = 'metric-track';
+            const fill = doc.createElement('div'); fill.className = 'metric-fill'; fill.dataset.width = String(Number(entry.percent)); fill.style.width = `${Number(entry.percent)}%`;
+            track.append(fill); row.append(track);
+          }
+          panel.append(row);
+        });
+        return panel;
+      }
       function refreshSkillCategories(selectedIndex) {
         const select = document.getElementById('skill-category-select');
         const doc = frame.contentDocument;
@@ -553,6 +613,24 @@
         event.currentTarget.reset(); document.getElementById('cert-dialog').classList.remove('open');
         say('Certification added. Click its text in the preview to make changes.'); scheduleAutoPublish();
       });
+      document.getElementById('apply-project-highlights').addEventListener('click', () => {
+        if (!selected || !selected.classList.contains('model-card') || !selected.isConnected) return say('Click a project card in the preview first.');
+        const entries = [1,2].map(n => ({
+          label:document.getElementById(`highlight-label-${n}`).value.trim(),
+          value:document.getElementById(`highlight-value-${n}`).value.trim(),
+          percent:document.getElementById(`highlight-bar-${n}`).value.trim()
+        }));
+        if (entries.some(entry => !entry.label || !entry.value)) return say('Enter a label and value for both project highlight boxes.');
+        if (entries.some(entry => entry.percent !== '' && (!Number.isFinite(Number(entry.percent)) || Number(entry.percent) < 0 || Number(entry.percent) > 100))) return say('Progress values must be between 0 and 100.');
+        const body = selected.querySelector('.mc-body');
+        if (!body) return say('Could not find the selected project details.');
+        const panel = createProjectMetrics(frame.contentDocument, entries);
+        const current = body.querySelector('.mc-metrics');
+        if (current) current.replaceWith(panel);
+        else (body.querySelector('.mc-desc') || body).after(panel);
+        say('Project highlight boxes updated.');
+        scheduleAutoPublish();
+      });
       document.getElementById('add-project').addEventListener('click', () => openDialog('project-dialog'));
       document.getElementById('project-form').addEventListener('submit', event => {
         event.preventDefault();
@@ -561,9 +639,15 @@
         const list = doc.querySelector('.projects-list');
         if (!list) return say('Could not find the Projects section in the preview.');
         const esc = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-        const tags = String(values.get('tools') || 'Add technologies').split(',').map(tag => `<span class="tag">${esc(tag.trim())}</span>`).join('');
+        const toolList = String(values.get('tools') || '').split(',').map(tool => tool.trim()).filter(Boolean);
+        const tags = (toolList.length ? toolList : ['Add technologies']).map(tag => `<span class="tag">${esc(tag)}</span>`).join('');
         const card = doc.createElement('article'); card.className = 'model-card';
-        card.innerHTML = `<div class="mc-head"><div class="mc-head-left"><div class="mc-eyebrow">Project</div><h3>${esc(values.get('name'))}</h3><div class="mc-org">${esc(values.get('tools') || 'Add tools and technologies')}</div></div><span class="mc-status">${esc(values.get('type') || 'Project')}</span></div><div class="mc-body"><div class="mc-desc"><ul><li>${esc(values.get('description') || 'Describe what you built and what it does.')}</li><li>Click here to add another project detail.</li></ul></div><div class="mc-metrics"><p style="color:var(--text-secondary);font-size:14px;">Click this area to add project details, results, or links.</p></div></div><div class="mc-stack"><div class="tag-row">${tags}</div></div>`;
+        card.innerHTML = `<div class="mc-head"><div class="mc-head-left"><div class="mc-eyebrow">Project</div><h3>${esc(values.get('name'))}</h3><div class="mc-org">${esc(values.get('tools') || 'Add tools and technologies')}</div></div><span class="mc-status">${esc(values.get('type') || 'Project')}</span></div><div class="mc-body"><div class="mc-desc"><ul><li>${esc(values.get('description') || 'Describe what you built and what it does.')}</li><li>Click here to add another project detail.</li></ul></div><div class="mc-metrics"></div></div><div class="mc-stack"><div class="tag-row">${tags}</div></div>`;
+        const metricEntries = [
+          {label:String(values.get('metric1Label') || '').trim() || 'Focus', value:String(values.get('metric1Value') || '').trim() || String(values.get('type') || '').trim() || 'Project', percent:String(values.get('metric1Percent') || '').trim()},
+          {label:String(values.get('metric2Label') || '').trim() || 'Key technology', value:String(values.get('metric2Value') || '').trim() || toolList[0] || 'Add your tools', percent:String(values.get('metric2Percent') || '').trim()}
+        ];
+        card.querySelector('.mc-metrics').replaceWith(createProjectMetrics(doc, metricEntries));
         const projectUrl = String(values.get('url') || '').trim();
         if (projectUrl && !/^(javascript|data):/i.test(projectUrl)) {
           const stack = card.querySelector('.mc-stack');
@@ -572,8 +656,14 @@
           anchor.style.color = 'var(--accent)'; anchor.style.fontSize = '13px'; anchor.textContent = 'Project Repository ↗';
           paragraph.append(anchor); stack.append(paragraph);
         }
-        list.append(card); event.currentTarget.reset(); document.getElementById('project-dialog').classList.remove('open');
-        say('Project added. Click any text in its card to edit.'); scheduleAutoPublish();
+        list.append(card);
+        if (selected) selected.removeAttribute('data-editor-selected');
+        selected = card; selected.setAttribute('data-editor-selected','true');
+        document.getElementById('selected-highlights').textContent = `Selected project: ${card.querySelector('h3')?.textContent.trim() || 'Project'}`;
+        document.getElementById('selected-project').textContent = `Selected project: ${card.querySelector('h3')?.textContent.trim() || 'Project'}`;
+        populateProjectHighlights(card);
+        event.currentTarget.reset(); document.getElementById('project-dialog').classList.remove('open');
+        say('Project added with two highlight boxes. You can edit them in Project highlight boxes.'); scheduleAutoPublish();
       });
       document.getElementById('remove').addEventListener('click', () => {
         if (!selected || !selected.isConnected) return say('Click a project or certification card in the preview first.');
