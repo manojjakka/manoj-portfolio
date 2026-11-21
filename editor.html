@@ -114,16 +114,10 @@
       </div>
       <div class="group">
         <h2>Project highlight boxes</h2>
-        <p>Click a project card in the preview, then edit its two highlight rows here. Use project-specific labels and values; progress bars are optional.</p>
+        <p>Click a project card in the preview, then edit its highlights here. Add as many rows as you need; progress bars are optional.</p>
         <p class="selected-link" id="selected-highlights">No project selected yet. Click a project card in the preview.</p>
-        <div class="fields">
-          <label>Highlight 1 label<input id="highlight-label-1" maxlength="32" placeholder="e.g. Assistant"></label>
-          <label>Highlight 1 value<input id="highlight-value-1" maxlength="64" placeholder="e.g. AI &amp; LLM"></label>
-          <label>Highlight 1 progress (optional, 0–100)<input id="highlight-bar-1" type="number" min="0" max="100" placeholder="Leave blank to hide the bar"></label>
-          <label>Highlight 2 label<input id="highlight-label-2" maxlength="32" placeholder="e.g. Interface"></label>
-          <label>Highlight 2 value<input id="highlight-value-2" maxlength="64" placeholder="e.g. Voice + chat"></label>
-          <label>Highlight 2 progress (optional, 0–100)<input id="highlight-bar-2" type="number" min="0" max="100" placeholder="Leave blank to hide the bar"></label>
-        </div>
+        <div class="fields" id="project-highlight-fields"></div>
+        <button class="btn" id="add-project-highlight" type="button">＋ Add another highlight</button>
         <button class="btn" id="apply-project-highlights" type="button">Apply highlight boxes</button>
       </div>
       <div class="group">
@@ -162,13 +156,9 @@
         <label>Tools and technologies<input name="tools" placeholder="Python, Flask, MySQL"></label>
         <label>Repository or demo URL (optional)<input name="url" type="text" placeholder="https://github.com/…"></label>
         <label>Short description<textarea name="description" placeholder="What did you build? What does it do?"></textarea></label>
-        <p style="margin:4px 0 0;color:#59677e;font-size:12px">Each new project gets two highlight boxes. Use project-specific labels and values; progress bars are optional.</p>
-        <label>Highlight 1 label<input name="metric1Label" maxlength="32" placeholder="e.g. Assistant"></label>
-        <label>Highlight 1 value<input name="metric1Value" maxlength="64" placeholder="e.g. AI &amp; LLM"></label>
-        <label>Highlight 1 progress (optional, 0–100)<input name="metric1Percent" type="number" min="0" max="100" placeholder="Leave blank to hide the bar"></label>
-        <label>Highlight 2 label<input name="metric2Label" maxlength="32" placeholder="e.g. Interface"></label>
-        <label>Highlight 2 value<input name="metric2Value" maxlength="64" placeholder="e.g. Voice + chat"></label>
-        <label>Highlight 2 progress (optional, 0–100)<input name="metric2Percent" type="number" min="0" max="100" placeholder="Leave blank to hide the bar"></label>
+        <p style="margin:4px 0 0;color:#59677e;font-size:12px">Every new project starts with two highlight boxes. Add more rows as needed; progress bars are optional.</p>
+        <div class="fields" id="new-project-highlights"></div>
+        <button class="btn" id="add-new-highlight" type="button">＋ Add another highlight</button>
       </div>
       <div class="form-actions"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit">Add to page</button></div>
     </form>
@@ -492,25 +482,60 @@
 
       const openDialog = id => document.getElementById(id).classList.add('open');
 
-      function clearProjectHighlights() {
-        for (const id of ['highlight-label-1','highlight-value-1','highlight-bar-1','highlight-label-2','highlight-value-2','highlight-bar-2']) {
-          document.getElementById(id).value = '';
-        }
-      }
-      function populateProjectHighlights(card) {
-        clearProjectHighlights();
-        const rows = [...card.querySelectorAll('.mc-metrics .metric-row')];
-        rows.slice(0, 2).forEach((row, index) => {
-          const n = index + 1;
-          document.getElementById(`highlight-label-${n}`).value = row.querySelector('.m-label')?.textContent.trim() || '';
-          document.getElementById(`highlight-value-${n}`).value = row.querySelector('.m-value')?.textContent.trim() || '';
-          const fill = row.querySelector('.metric-fill');
-          document.getElementById(`highlight-bar-${n}`).value = fill?.dataset.width || fill?.style.width?.replace('%','') || '';
+      function addHighlightInput(container, entry = {}) {
+        const row = document.createElement('div'); row.className = 'highlight-input-row'; row.dataset.highlightRow = 'true';
+        const number = container.querySelectorAll('[data-highlight-row]').length + 1;
+        const fields = [
+          ['Label', 'label', entry.label || '', 'e.g. Assistant', 32, 'text'],
+          ['Value', 'value', entry.value || '', 'e.g. AI & LLM', 64, 'text'],
+          ['Progress (optional, 0–100)', 'percent', entry.percent || '', 'Leave blank to hide the bar', '', 'number']
+        ];
+        fields.forEach(([title,key,value,placeholder,maxLength,type]) => {
+          const label = document.createElement('label'); label.textContent = `Highlight ${number} ${title}`;
+          const input = document.createElement('input'); input.type = type; input.value = value; input.placeholder = placeholder;
+          if (maxLength) input.maxLength = maxLength;
+          if (type === 'number') { input.min = '0'; input.max = '100'; }
+          input.dataset.highlightField = key; label.append(input); row.append(label);
         });
+        const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn danger'; remove.textContent = 'Remove this highlight';
+        remove.addEventListener('click', () => { row.remove(); renumberHighlightInputs(container); });
+        row.append(remove); container.append(row); renumberHighlightInputs(container);
+        return row;
+      }
+      function renumberHighlightInputs(container) {
+        const rows = [...container.querySelectorAll('[data-highlight-row]')];
+        rows.forEach((row,index) => {
+          row.querySelectorAll('label').forEach(label => { label.firstChild.textContent = `Highlight ${index + 1} ${label.firstChild.textContent.replace(/^Highlight \\d+ /,'')}`; });
+          const remove = row.querySelector('button');
+          remove.hidden = rows.length <= 2;
+        });
+      }
+      function resetHighlightInputs(container, entries = [{},{ }]) {
+        container.replaceChildren();
+        entries.forEach(entry => addHighlightInput(container, entry));
+      }
+      function readHighlightInputs(container) {
+        return [...container.querySelectorAll('[data-highlight-row]')].map(row => ({
+          label:row.querySelector('[data-highlight-field="label"]').value.trim(),
+          value:row.querySelector('[data-highlight-field="value"]').value.trim(),
+          percent:row.querySelector('[data-highlight-field="percent"]').value.trim()
+        }));
+      }
+      function clearProjectHighlights() { resetHighlightInputs(document.getElementById('project-highlight-fields')); }
+      function populateProjectHighlights(card) {
+        const rows = [...card.querySelectorAll('.mc-metrics .metric-row')].map(row => {
+          const fill = row.querySelector('.metric-fill');
+          return {
+            label:row.querySelector('.m-label')?.textContent.trim() || '',
+            value:row.querySelector('.m-value')?.textContent.trim() || '',
+            percent:fill?.dataset.width || fill?.style.width?.replace('%','') || ''
+          };
+        });
+        resetHighlightInputs(document.getElementById('project-highlight-fields'), rows.length ? rows : [{},{}]);
       }
       function createProjectMetrics(doc, entries) {
         const panel = doc.createElement('div'); panel.className = 'mc-metrics';
-        entries.slice(0, 2).forEach(entry => {
+        entries.forEach(entry => {
           const row = doc.createElement('div'); row.className = 'metric-row';
           const top = doc.createElement('div'); top.className = 'metric-top';
           const label = doc.createElement('span'); label.className = 'm-label'; label.textContent = entry.label;
@@ -613,6 +638,10 @@
         event.currentTarget.reset(); document.getElementById('cert-dialog').classList.remove('open');
         say('Certification added. Click its text in the preview to make changes.'); scheduleAutoPublish();
       });
+      resetHighlightInputs(document.getElementById('new-project-highlights'));
+      clearProjectHighlights();
+      document.getElementById('add-new-highlight').addEventListener('click', () => addHighlightInput(document.getElementById('new-project-highlights')));
+      document.getElementById('add-project-highlight').addEventListener('click', () => addHighlightInput(document.getElementById('project-highlight-fields')));
       document.getElementById('apply-project-highlights').addEventListener('click', () => {
         if (!selected || !selected.classList.contains('model-card') || !selected.isConnected) return say('Click a project card in the preview first.');
         const entries = [1,2].map(n => ({
@@ -620,7 +649,8 @@
           value:document.getElementById(`highlight-value-${n}`).value.trim(),
           percent:document.getElementById(`highlight-bar-${n}`).value.trim()
         }));
-        if (entries.some(entry => !entry.label || !entry.value)) return say('Enter a label and value for both project highlight boxes.');
+        if (entries.length < 2) return say('Keep at least two project highlight boxes.');
+        if (entries.some(entry => !entry.label || !entry.value)) return say('Enter a label and value for every project highlight box.');
         if (entries.some(entry => entry.percent !== '' && (!Number.isFinite(Number(entry.percent)) || Number(entry.percent) < 0 || Number(entry.percent) > 100))) return say('Progress values must be between 0 and 100.');
         const body = selected.querySelector('.mc-body');
         if (!body) return say('Could not find the selected project details.');
@@ -643,10 +673,11 @@
         const tags = (toolList.length ? toolList : ['Add technologies']).map(tag => `<span class="tag">${esc(tag)}</span>`).join('');
         const card = doc.createElement('article'); card.className = 'model-card';
         card.innerHTML = `<div class="mc-head"><div class="mc-head-left"><div class="mc-eyebrow">Project</div><h3>${esc(values.get('name'))}</h3><div class="mc-org">${esc(values.get('tools') || 'Add tools and technologies')}</div></div><span class="mc-status">${esc(values.get('type') || 'Project')}</span></div><div class="mc-body"><div class="mc-desc"><ul><li>${esc(values.get('description') || 'Describe what you built and what it does.')}</li><li>Click here to add another project detail.</li></ul></div><div class="mc-metrics"></div></div><div class="mc-stack"><div class="tag-row">${tags}</div></div>`;
-        const metricEntries = [
-          {label:String(values.get('metric1Label') || '').trim() || 'Focus', value:String(values.get('metric1Value') || '').trim() || String(values.get('type') || '').trim() || 'Project', percent:String(values.get('metric1Percent') || '').trim()},
-          {label:String(values.get('metric2Label') || '').trim() || 'Key technology', value:String(values.get('metric2Value') || '').trim() || toolList[0] || 'Add your tools', percent:String(values.get('metric2Percent') || '').trim()}
-        ];
+        const metricEntries = readHighlightInputs(document.getElementById('new-project-highlights')).map((entry,index) => ({
+          label:entry.label || (index === 0 ? 'Focus' : index === 1 ? 'Key technology' : `Highlight ${index + 1}`),
+          value:entry.value || (index === 0 ? String(values.get('type') || '').trim() || 'Project' : index === 1 ? toolList[0] || 'Add your tools' : 'Add a project detail'),
+          percent:entry.percent
+        }));
         card.querySelector('.mc-metrics').replaceWith(createProjectMetrics(doc, metricEntries));
         const projectUrl = String(values.get('url') || '').trim();
         if (projectUrl && !/^(javascript|data):/i.test(projectUrl)) {
@@ -662,8 +693,8 @@
         document.getElementById('selected-highlights').textContent = `Selected project: ${card.querySelector('h3')?.textContent.trim() || 'Project'}`;
         document.getElementById('selected-project').textContent = `Selected project: ${card.querySelector('h3')?.textContent.trim() || 'Project'}`;
         populateProjectHighlights(card);
-        event.currentTarget.reset(); document.getElementById('project-dialog').classList.remove('open');
-        say('Project added with two highlight boxes. You can edit them in Project highlight boxes.'); scheduleAutoPublish();
+        event.currentTarget.reset(); resetHighlightInputs(document.getElementById('new-project-highlights')); document.getElementById('project-dialog').classList.remove('open');
+        say(`Project added with ${metricEntries.length} highlight boxes. You can add or edit more anytime.`); scheduleAutoPublish();
       });
       document.getElementById('remove').addEventListener('click', () => {
         if (!selected || !selected.isConnected) return say('Click a project or certification card in the preview first.');
