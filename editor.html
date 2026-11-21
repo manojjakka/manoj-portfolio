@@ -505,7 +505,7 @@
       function renumberHighlightInputs(container) {
         const rows = [...container.querySelectorAll('[data-highlight-row]')];
         rows.forEach((row,index) => {
-          row.querySelectorAll('label').forEach(label => { label.firstChild.textContent = `Highlight ${index + 1} ${label.firstChild.textContent.replace(/^Highlight \\d+ /,'')}`; });
+          row.querySelectorAll('label').forEach(label => { label.firstChild.textContent = `Highlight ${index + 1} ${label.firstChild.textContent.replace(/^Highlight \d+ /,'')}`; });
           const remove = row.querySelector('button');
           remove.hidden = rows.length <= 2;
         });
