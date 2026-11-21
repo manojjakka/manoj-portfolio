@@ -644,11 +644,7 @@
       document.getElementById('add-project-highlight').addEventListener('click', () => addHighlightInput(document.getElementById('project-highlight-fields')));
       document.getElementById('apply-project-highlights').addEventListener('click', () => {
         if (!selected || !selected.classList.contains('model-card') || !selected.isConnected) return say('Click a project card in the preview first.');
-        const entries = [1,2].map(n => ({
-          label:document.getElementById(`highlight-label-${n}`).value.trim(),
-          value:document.getElementById(`highlight-value-${n}`).value.trim(),
-          percent:document.getElementById(`highlight-bar-${n}`).value.trim()
-        }));
+        const entries = readHighlightInputs(document.getElementById('project-highlight-fields'));
         if (entries.length < 2) return say('Keep at least two project highlight boxes.');
         if (entries.some(entry => !entry.label || !entry.value)) return say('Enter a label and value for every project highlight box.');
         if (entries.some(entry => entry.percent !== '' && (!Number.isFinite(Number(entry.percent)) || Number(entry.percent) < 0 || Number(entry.percent) > 100))) return say('Progress values must be between 0 and 100.');
