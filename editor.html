@@ -69,6 +69,13 @@
         <button class="btn" id="add-project">＋ Add project</button>
       </div>
       <div class="group">
+        <h2>Update your resume</h2>
+        <p>Choose a PDF to replace the resume file used by your Resume buttons. The new PDF will be uploaded to your connected GitHub repository.</p>
+        <div class="fields"><label for="resume-file">New resume PDF<input id="resume-file" type="file" accept="application/pdf,.pdf"></label></div>
+        <button class="btn" id="upload-resume" type="button">Upload resume PDF</button>
+        <p class="note" id="resume-file-help" style="margin-top:8px">Keep the file under 10 MB. The PDF replaces the resume file used by this portfolio.</p>
+      </div>
+      <div class="group">
         <h2>Remove an item</h2>
         <p>Click a project or certification card in the preview, then choose remove.</p>
         <button class="btn danger" id="remove">Remove selected card</button>
@@ -162,6 +169,7 @@
         document.getElementById('repo-field').hidden = false;
         document.getElementById('repo-field').querySelector('input').required = true;
         document.getElementById('github-help').innerHTML = 'Enter the GitHub repository where <strong>you</strong> want this portfolio published. Create a fine-grained token for that repository with <strong>Contents: Read and write</strong>. Publishing writes this portfolio to that repository’s <strong>index.html</strong>. Your token is kept in this browser tab only.';
+        document.getElementById('resume-file-help').innerHTML = 'Keep the file under 10 MB. It will be saved as <strong>resume.pdf</strong> in your repository.';
       }
       const say = message => {
         status.textContent = message;
@@ -237,7 +245,7 @@
         mode.textContent = 'Editing enabled';
       }
 
-      const LAUNCHPAD_STARTER = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Portfolio</title><style>:root{--bg:#0A0E17;--surface:#121B31;--line:#212D48;--text:#EDEFF5;--muted:#93A0BC;--accent:#4FD8C9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,Arial,sans-serif;padding:0 7vw 60px}.hero{padding:14vh 0 9vh;border-bottom:1px solid var(--line)}.eyebrow,.mc-eyebrow{font:11px monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(38px,7vw,76px);line-height:1.02;max-width:850px;margin:18px 0}h2{font-size:30px;margin:50px 0 20px}p,.mc-org{color:var(--muted)}.hero p{max-width:620px}.projects-list,.cert-list{display:grid;gap:14px}.model-card,.cert-item{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.mc-head{display:flex;justify-content:space-between;gap:12px}.mc-head h3{margin:8px 0}.mc-stack{margin-top:16px;color:var(--accent)}.tag{display:inline-block;padding:5px 9px;border:1px solid var(--line);border-radius:7px;color:var(--muted);margin:4px;font-size:12px}.cert-item{display:flex;justify-content:space-between;gap:14px}.c-name{font-weight:700}.c-org,.c-date{font-size:12px;color:var(--muted)}a{color:var(--accent)}</style></head><body><header class="hero"><div class="eyebrow">Your portfolio</div><h1>Your name goes here.</h1><p>Add a short introduction about your target role, your interests, and the work you want people to see.</p></header><section><h2>About</h2><p>Replace this text with a short, accurate introduction.</p></section><section><h2>Projects</h2><div class="projects-list"></div></section><section><h2>Skills</h2><p>Add your relevant tools and skills.</p></section><section><h2>Certifications</h2><div class="cert-list"></div></section><section><h2>Contact</h2><p>Add links you want people to use to reach you.</p></section></body></html>`;
+      const LAUNCHPAD_STARTER = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Portfolio</title><style>:root{--bg:#0A0E17;--surface:#121B31;--line:#212D48;--text:#EDEFF5;--muted:#93A0BC;--accent:#4FD8C9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,Arial,sans-serif;padding:0 7vw 60px}.hero{padding:14vh 0 9vh;border-bottom:1px solid var(--line)}.eyebrow,.mc-eyebrow{font:11px monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(38px,7vw,76px);line-height:1.02;max-width:850px;margin:18px 0}h2{font-size:30px;margin:50px 0 20px}p,.mc-org{color:var(--muted)}.hero p{max-width:620px}.projects-list,.cert-list{display:grid;gap:14px}.model-card,.cert-item{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.mc-head{display:flex;justify-content:space-between;gap:12px}.mc-head h3{margin:8px 0}.mc-stack{margin-top:16px;color:var(--accent)}.tag{display:inline-block;padding:5px 9px;border:1px solid var(--line);border-radius:7px;color:var(--muted);margin:4px;font-size:12px}.cert-item{display:flex;justify-content:space-between;gap:14px}.c-name{font-weight:700}.c-org,.c-date{font-size:12px;color:var(--muted)}a{color:var(--accent)}</style></head><body><header class="hero"><div class="eyebrow">Your portfolio</div><h1>Your name goes here.</h1><p>Add a short introduction about your target role, your interests, and the work you want people to see.</p></header><section><h2>About</h2><p>Replace this text with a short, accurate introduction.</p></section><section><h2>Projects</h2><div class="projects-list"></div></section><section><h2>Skills</h2><p>Add your relevant tools and skills.</p></section><section><h2>Certifications</h2><div class="cert-list"></div></section><section><h2>Resume</h2><p><a href="resume.pdf" download>View / download resume</a></p></section><section><h2>Contact</h2><p>Add links you want people to use to reach you.</p></section></body></html>`;
 
       function loadLive() {
         if (launchpadMode) {
@@ -263,6 +271,66 @@
         mode.textContent = 'Saved draft';
         say('Saved draft restored.');
       } else loadLive();
+
+      let pendingResumeFile = null;
+      async function uploadResume(file) {
+        const token = sessionStorage.getItem(TOKEN_KEY);
+        if (!token) {
+          pendingResumeFile = file;
+          openDialog('github-dialog');
+          say('Connect GitHub to upload your resume. Your selected PDF is ready.');
+          return;
+        }
+        if (!file || !/\.pdf$/i.test(file.name)) {
+          say('Choose a PDF file for your resume.'); return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          say('This PDF is over 10 MB. Choose a smaller resume file.'); return;
+        }
+        const input = document.getElementById('resume-file');
+        const button = document.getElementById('upload-resume');
+        const path = launchpadMode ? 'resume.pdf' : 'Manoj_Resume.pdf';
+        button.disabled = true; button.textContent = 'Uploading…';
+        try {
+          const headers = {Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
+          const fileUrl = `${apiRoot()}/contents/${encodeURIComponent(path)}`;
+          const current = await fetch(`${fileUrl}?ref=${encodeURIComponent(publishBranch())}`, {headers});
+          if (!current.ok && current.status !== 404) throw new Error(current.status === 401 ? 'GitHub rejected the token. Reconnect with a valid token.' : `Could not check the current resume file (${current.status}).`);
+          const existing = current.ok ? await current.json() : null;
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+          const payload = {message:'Update resume PDF from portfolio editor',content:btoa(binary),branch:publishBranch()};
+          if (existing?.sha) payload.sha = existing.sha;
+          const response = await fetch(fileUrl, {method:'PUT',headers,body:JSON.stringify(payload)});
+          if (!response.ok) {
+            const details = await response.json().catch(() => ({}));
+            throw new Error(response.status === 409 || response.status === 422 ? 'GitHub could not update the file. Reload the editor and try again.' : details.message || `GitHub could not upload the resume (${response.status}).`);
+          }
+          input.value = '';
+          pendingResumeFile = null;
+          if (launchpadMode) {
+            const doc = frame.contentDocument;
+            if (doc?.body) {
+              const hasResumeLink = [...doc.querySelectorAll('a[href]')].some(anchor => /resume\.pdf$/i.test(anchor.getAttribute('href') || ''));
+              if (!hasResumeLink) {
+                const section = doc.createElement('section');
+                const heading = doc.createElement('h2'); heading.textContent = 'Resume';
+                const paragraph = doc.createElement('p');
+                const anchor = doc.createElement('a'); anchor.href = 'resume.pdf'; anchor.download = ''; anchor.textContent = 'View / download resume';
+                paragraph.append(anchor); section.append(heading, paragraph);
+                const contactHeading = [...doc.querySelectorAll('h2')].find(item => item.textContent.trim().toLowerCase() === 'contact');
+                if (contactHeading?.parentElement) contactHeading.parentElement.before(section); else doc.body.append(section);
+              }
+              scheduleAutoPublish();
+            }
+          }
+          say('Resume uploaded to GitHub. Your Resume buttons will use the new PDF after GitHub Pages updates.');
+        } catch (error) {
+          say(error.message || 'Could not upload the resume. Check your connection and token permissions.');
+        } finally {
+          button.disabled = false; button.textContent = 'Upload resume PDF';
+        }
+      }
 
       document.getElementById('save').addEventListener('click', () => {
         try {
@@ -301,7 +369,8 @@
           document.getElementById('github-settings').textContent = 'GitHub connected';
           document.getElementById('github-dialog').classList.remove('open');
           form.reset(); say('GitHub connected. Your edits will publish automatically.');
-          scheduleAutoPublish();
+          if (pendingResumeFile) await uploadResume(pendingResumeFile);
+          else scheduleAutoPublish();
         } catch (error) { say(error.message || 'Could not connect to GitHub. Check the token permissions and try again.'); }
         finally { submit.disabled = false; submit.textContent = 'Connect'; }
       });
@@ -365,6 +434,13 @@
           say('Published to GitHub. GitHub Pages is updating your live portfolio now.');
         } catch (error) { say(error.message || 'Could not publish. Check your connection and token permissions.'); }
         finally { button.disabled = false; button.textContent = 'Publish to GitHub'; }
+      });
+
+      document.getElementById('upload-resume').addEventListener('click', () => {
+        const input = document.getElementById('resume-file');
+        const file = input.files?.[0];
+        if (!file) return say('Choose your updated resume PDF first.');
+        uploadResume(file);
       });
 
       const openDialog = id => document.getElementById(id).classList.add('open');
