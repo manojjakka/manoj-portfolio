@@ -69,6 +69,11 @@
         <button class="btn" id="add-project">＋ Add project</button>
       </div>
       <div class="group">
+        <h2>Add research detail</h2>
+        <p>Add a paper, publication, conference presentation, or research project to the Research section.</p>
+        <button class="btn" id="add-research">＋ Add research detail</button>
+      </div>
+      <div class="group">
         <h2>Add a technical skill sector</h2>
         <p>Create a new skill card with its own name and symbol. Add starting skills as a comma-separated list if you like.</p>
         <div class="fields">
@@ -163,6 +168,19 @@
       <div class="form-actions"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit">Add to page</button></div>
     </form>
   </div>
+  <div class="dialog" id="research-dialog" role="dialog" aria-modal="true" aria-labelledby="research-heading">
+    <form class="box" id="research-form">
+      <h2 id="research-heading">Add research detail</h2>
+      <div class="fields">
+        <label>Research title<input name="title" required maxlength="180" placeholder="Paper, publication, or research project title"></label>
+        <label>Year<input name="year" maxlength="20" placeholder="e.g. 2026"></label>
+        <label>Journal, conference, or organization<input name="organization" maxlength="180" placeholder="Where was it published or presented?"></label>
+        <label>Research summary<textarea name="description" maxlength="1200" placeholder="Briefly describe the research or contribution"></textarea></label>
+        <label>Publication or project link (optional)<input name="url" type="url" placeholder="https://…"></label>
+      </div>
+      <div class="form-actions"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit">Add to Research</button></div>
+    </form>
+  </div>
   <div class="dialog" id="github-dialog" role="dialog" aria-modal="true" aria-labelledby="github-heading">
     <form class="box" id="github-form">
       <h2 id="github-heading">Connect to GitHub</h2>
@@ -253,7 +271,7 @@
             document.getElementById('selected-link').textContent = `Selected: ${link.textContent.trim() || 'link'}`;
             say('Link selected. Change its destination in the field.');
           }
-          const card = target.closest('.model-card, .cert-item');
+          const card = target.closest('.model-card, .cert-item, .t-item');
           if (selected) selected.removeAttribute('data-editor-selected');
           selected = card;
           if (selected) selected.setAttribute('data-editor-selected', 'true');
@@ -268,6 +286,11 @@
             clearProjectHighlights();
             document.getElementById('selected-highlights').textContent = 'A certification is selected. Click a project card to edit its highlight boxes.';
             document.getElementById('selected-project').textContent = 'A certification is selected. Click a project card to add a project URL.';
+          } else if (selected && selected.classList.contains('t-item')) {
+            clearProjectHighlights();
+            document.getElementById('selected-highlights').textContent = 'A research detail is selected.';
+            document.getElementById('selected-project').textContent = 'A research detail is selected. Click a project card to edit project details.';
+            say('Research detail selected. Use Remove selected card to delete it.');
           } else {
             clearProjectHighlights();
             document.getElementById('selected-highlights').textContent = 'No project selected yet. Click a project card in the preview.';
@@ -482,6 +505,30 @@
 
       const openDialog = id => document.getElementById(id).classList.add('open');
 
+      function getResearchTimeline(doc) {
+        let section = doc.querySelector('#research');
+        if (!section) {
+          section = doc.createElement('section'); section.id = 'research'; section.className = 'section-pad';
+          const wrap = doc.createElement('div'); wrap.className = 'wrap';
+          const head = doc.createElement('div'); head.className = 'section-head';
+          const eyebrow = doc.createElement('div'); eyebrow.className = 'eyebrow'; eyebrow.textContent = 'Research & Publications';
+          const title = doc.createElement('h2'); title.textContent = 'Research and publications';
+          const intro = doc.createElement('p'); intro.textContent = 'Papers, conference work, and research projects.';
+          head.append(eyebrow, title, intro);
+          const timeline = doc.createElement('div'); timeline.className = 'timeline';
+          wrap.append(head, timeline); section.append(wrap);
+          const projects = doc.querySelector('#projects');
+          if (projects?.parentElement) projects.before(section); else doc.body.append(section);
+          return timeline;
+        }
+        let timeline = section.querySelector('.timeline');
+        if (!timeline) {
+          timeline = doc.createElement('div'); timeline.className = 'timeline';
+          (section.querySelector('.wrap') || section).append(timeline);
+        }
+        return timeline;
+      }
+
       function addHighlightInput(container, entry = {}) {
         const row = document.createElement('div'); row.className = 'highlight-input-row'; row.dataset.highlightRow = 'true';
         const number = container.querySelectorAll('[data-highlight-row]').length + 1;
@@ -657,6 +704,36 @@
         say('Project highlight boxes updated.');
         scheduleAutoPublish();
       });
+      document.getElementById('add-research').addEventListener('click', () => openDialog('research-dialog'));
+      document.getElementById('research-form').addEventListener('submit', event => {
+        event.preventDefault();
+        const values = new FormData(event.currentTarget);
+        const doc = frame.contentDocument;
+        if (!doc?.body) return say('The portfolio preview is still loading. Try again in a moment.');
+        const timeline = getResearchTimeline(doc);
+        const item = doc.createElement('div'); item.className = 't-item reveal in';
+        const card = doc.createElement('div'); card.className = 't-card';
+        const top = doc.createElement('div'); top.className = 't-top';
+        const title = doc.createElement('h3'); title.textContent = String(values.get('title') || '').trim();
+        const date = doc.createElement('span'); date.className = 't-date mono'; date.textContent = String(values.get('year') || '').trim() || 'Research';
+        top.append(title, date); card.append(top);
+        const organization = String(values.get('organization') || '').trim();
+        if (organization) { const org = doc.createElement('div'); org.className = 't-org'; org.textContent = organization; card.append(org); }
+        const description = String(values.get('description') || '').trim();
+        if (description) { const summary = doc.createElement('p'); summary.className = 't-desc'; summary.textContent = description; card.append(summary); }
+        const url = String(values.get('url') || '').trim();
+        if (url && !/^(javascript|data):/i.test(url)) {
+          const link = doc.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'View research ↗';
+          const linkRow = doc.createElement('p'); linkRow.className = 't-desc'; linkRow.append(link); card.append(linkRow);
+        }
+        item.append(card); timeline.append(item);
+        if (selected) selected.removeAttribute('data-editor-selected');
+        selected = item; selected.setAttribute('data-editor-selected','true');
+        document.getElementById('selected-highlights').textContent = 'A research detail is selected.';
+        event.currentTarget.reset(); document.getElementById('research-dialog').classList.remove('open');
+        say('Research detail added. It is now in the Research section.');
+        scheduleAutoPublish();
+      });
       document.getElementById('add-project').addEventListener('click', () => openDialog('project-dialog'));
       document.getElementById('project-form').addEventListener('submit', event => {
         event.preventDefault();
@@ -693,10 +770,13 @@
         say(`Project added with ${metricEntries.length} highlight boxes. You can add or edit more anytime.`); scheduleAutoPublish();
       });
       document.getElementById('remove').addEventListener('click', () => {
-        if (!selected || !selected.isConnected) return say('Click a project or certification card in the preview first.');
-        const kind = selected.classList.contains('model-card') ? 'Project' : 'Certification';
+        if (!selected || !selected.isConnected) return say('Click a project, certification, or research detail in the preview first.');
+        const kind = selected.classList.contains('model-card') ? 'Project' : selected.classList.contains('cert-item') ? 'Certification' : 'Research detail';
         if (!confirm(`Remove this ${kind.toLowerCase()} from the portfolio?`)) return;
-        selected.remove(); selected = null; say(`${kind} removed from the draft.`); scheduleAutoPublish();
+        selected.remove(); selected = null; clearProjectHighlights();
+        document.getElementById('selected-highlights').textContent = 'No project selected yet. Click a project card in the preview.';
+        document.getElementById('selected-project').textContent = 'No project selected yet. Click a project card in the preview.';
+        say(`${kind} removed from the draft.`); scheduleAutoPublish();
       });
       document.getElementById('apply-link').addEventListener('click', () => {
         if (!selectedLink || !selectedLink.isConnected) return say('Click a link in the preview first.');
