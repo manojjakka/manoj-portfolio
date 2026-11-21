@@ -15,7 +15,7 @@
     .mobile-tabs{display:none}
     aside{background:#fff;border:1px solid #dfe4ee;border-radius:14px;padding:20px;overflow:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:750;color:#64738c;margin:0 0 9px}.intro{font-size:14px;line-height:1.55;color:#53627b;margin:0 0 20px}.group{border-top:1px solid #e8ecf2;padding:17px 0}.group h2{font-size:14px;margin:0 0 8px}.group p{font-size:12px;line-height:1.5;color:#66748b;margin:0 0 11px}.group .btn{width:100%;text-align:left;margin:4px 0}.selected-link{font-weight:650;color:#394862!important;overflow-wrap:anywhere}.note{font-size:12px;line-height:1.5;background:#f4f7fc;border-radius:9px;padding:11px;color:#5b6980;margin-top:14px}
     .preview{overflow:hidden;border:1px solid #dfe4ee;border-radius:14px;background:#dfe4ee;display:flex;flex-direction:column}.preview-head{height:43px;flex:none;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;color:#68758a;font-size:12px;border-bottom:1px solid #dfe4ee}.preview iframe{width:100%;height:100%;border:0;background:#0A0E17}
-    .dialog{position:fixed;inset:0;background:#15213a88;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.dialog.open{display:flex}.box{background:white;border-radius:14px;padding:23px;width:min(560px,100%);max-height:90vh;overflow:auto;box-shadow:0 22px 65px #09163244}.box h2{font-size:20px;margin:0 0 17px}.fields{display:grid;gap:12px}.fields label{font-size:12px;font-weight:700;color:#4e5d75;display:grid;gap:6px}.fields input,.fields textarea{width:100%;border:1px solid #d6deea;border-radius:8px;padding:10px 11px;color:#172033;background:#fff}.fields textarea{min-height:76px;resize:vertical}.form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+    .dialog{position:fixed;inset:0;background:#15213a88;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.dialog.open{display:flex}.box{background:white;border-radius:14px;padding:23px;width:min(560px,100%);max-height:90vh;overflow:auto;box-shadow:0 22px 65px #09163244}.box h2{font-size:20px;margin:0 0 17px}.fields{display:grid;gap:12px}.fields label{font-size:12px;font-weight:700;color:#4e5d75;display:grid;gap:6px}.fields input,.fields textarea,.fields select{width:100%;border:1px solid #d6deea;border-radius:8px;padding:10px 11px;color:#172033;background:#fff}.fields textarea{min-height:76px;resize:vertical}.form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
     @media(max-width:900px){.layout{grid-template-columns:1fr;height:auto}.preview{height:72vh}aside{order:0}.actions .optional{display:none}}
     @media(max-width:700px){
       .topbar{height:auto;min-height:0;align-items:flex-start;gap:10px;padding:11px 12px;flex-direction:column}
@@ -67,6 +67,25 @@
         <h2>Add a project</h2>
         <p>Add a project card with a title, tools, and summary. You can edit every line in the preview.</p>
         <button class="btn" id="add-project">＋ Add project</button>
+      </div>
+      <div class="group">
+        <h2>Add a technical skill sector</h2>
+        <p>Create a new skill card with its own name and symbol. Add starting skills as a comma-separated list if you like.</p>
+        <div class="fields">
+          <label for="skill-category-name">Sector name<input id="skill-category-name" type="text" maxlength="60" placeholder="e.g. Cloud Platforms"></label>
+          <label for="skill-category-symbol">Sector symbol<input id="skill-category-symbol" type="text" maxlength="8" placeholder="e.g. ☁ or ◆"></label>
+          <label for="skill-category-items">Starting skills (optional)<textarea id="skill-category-items" placeholder="AWS, Azure, Docker"></textarea></label>
+        </div>
+        <button class="btn" id="add-skill-category" type="button">＋ Add technical sector</button>
+      </div>
+      <div class="group">
+        <h2>Add a skill to a sector</h2>
+        <p>Choose one of your technical-skill sectors and add a skill you have learned.</p>
+        <div class="fields">
+          <label for="skill-category-select">Technical sector<select id="skill-category-select"></select></label>
+          <label for="skill-name">Skill name<input id="skill-name" type="text" maxlength="80" placeholder="e.g. Docker"></label>
+        </div>
+        <button class="btn" id="add-skill" type="button">＋ Add skill to sector</button>
       </div>
       <div class="group">
         <h2>Update your resume</h2>
@@ -242,10 +261,11 @@
         style.dataset.editorUi = 'true';
         style.textContent = '[data-editor-selected="true"],[data-editor-link-selected="true"]{outline:2px solid #4d8df5!important;outline-offset:4px!important}';
         doc.head.appendChild(style);
+        refreshSkillCategories();
         mode.textContent = 'Editing enabled';
       }
 
-      const LAUNCHPAD_STARTER = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Portfolio</title><style>:root{--bg:#0A0E17;--surface:#121B31;--line:#212D48;--text:#EDEFF5;--muted:#93A0BC;--accent:#4FD8C9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,Arial,sans-serif;padding:0 7vw 60px}.hero{padding:14vh 0 9vh;border-bottom:1px solid var(--line)}.eyebrow,.mc-eyebrow{font:11px monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(38px,7vw,76px);line-height:1.02;max-width:850px;margin:18px 0}h2{font-size:30px;margin:50px 0 20px}p,.mc-org{color:var(--muted)}.hero p{max-width:620px}.projects-list,.cert-list{display:grid;gap:14px}.model-card,.cert-item{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.mc-head{display:flex;justify-content:space-between;gap:12px}.mc-head h3{margin:8px 0}.mc-stack{margin-top:16px;color:var(--accent)}.tag{display:inline-block;padding:5px 9px;border:1px solid var(--line);border-radius:7px;color:var(--muted);margin:4px;font-size:12px}.cert-item{display:flex;justify-content:space-between;gap:14px}.c-name{font-weight:700}.c-org,.c-date{font-size:12px;color:var(--muted)}a{color:var(--accent)}</style></head><body><header class="hero"><div class="eyebrow">Your portfolio</div><h1>Your name goes here.</h1><p>Add a short introduction about your target role, your interests, and the work you want people to see.</p></header><section><h2>About</h2><p>Replace this text with a short, accurate introduction.</p></section><section><h2>Projects</h2><div class="projects-list"></div></section><section><h2>Skills</h2><p>Add your relevant tools and skills.</p></section><section><h2>Certifications</h2><div class="cert-list"></div></section><section><h2>Resume</h2><p><a href="resume.pdf" download>View / download resume</a></p></section><section><h2>Contact</h2><p>Add links you want people to use to reach you.</p></section></body></html>`;
+      const LAUNCHPAD_STARTER = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Portfolio</title><style>:root{--bg:#0A0E17;--surface:#121B31;--line:#212D48;--text:#EDEFF5;--muted:#93A0BC;--accent:#4FD8C9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,Arial,sans-serif;padding:0 7vw 60px}.hero{padding:14vh 0 9vh;border-bottom:1px solid var(--line)}.eyebrow,.mc-eyebrow{font:11px monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(38px,7vw,76px);line-height:1.02;max-width:850px;margin:18px 0}h2{font-size:30px;margin:50px 0 20px}p,.mc-org{color:var(--muted)}.hero p{max-width:620px}.projects-list,.cert-list{display:grid;gap:14px}.model-card,.cert-item{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.mc-head{display:flex;justify-content:space-between;gap:12px}.mc-head h3{margin:8px 0}.mc-stack{margin-top:16px;color:var(--accent)}.tag{display:inline-block;padding:5px 9px;border:1px solid var(--line);border-radius:7px;color:var(--muted);margin:4px;font-size:12px}.cert-item{display:flex;justify-content:space-between;gap:14px}.c-name{font-weight:700}.c-org,.c-date{font-size:12px;color:var(--muted)}a{color:var(--accent)}</style></head><body><header class="hero"><div class="eyebrow">Your portfolio</div><h1>Your name goes here.</h1><p>Add a short introduction about your target role, your interests, and the work you want people to see.</p></header><section><h2>About</h2><p>Replace this text with a short, accurate introduction.</p></section><section><h2>Projects</h2><div class="projects-list"></div></section><section><h2>Skills &amp; Technologies</h2><div class="skills-grid"><article class="skill-card"><div class="sk-head"><span class="sk-icon">◇</span><h3>Technical Skills</h3></div><div class="tag-row"></div></article></div></section><section><h2>Certifications</h2><div class="cert-list"></div></section><section><h2>Resume</h2><p><a href="resume.pdf" download>View / download resume</a></p></section><section><h2>Contact</h2><p>Add links you want people to use to reach you.</p></section></body></html>`;
 
       function loadLive() {
         if (launchpadMode) {
@@ -444,6 +464,75 @@
       });
 
       const openDialog = id => document.getElementById(id).classList.add('open');
+
+      function refreshSkillCategories(selectedIndex) {
+        const select = document.getElementById('skill-category-select');
+        const doc = frame.contentDocument;
+        const cards = doc ? [...doc.querySelectorAll('.skills-grid > .skill-card')] : [];
+        const previous = selectedIndex ?? Number(select.value);
+        select.replaceChildren();
+        if (!cards.length) {
+          const option = document.createElement('option');
+          option.value = ''; option.textContent = 'Add a sector first';
+          select.append(option); select.disabled = true;
+          return;
+        }
+        cards.forEach((card, index) => {
+          const option = document.createElement('option');
+          option.value = String(index);
+          option.textContent = card.querySelector('h3')?.textContent.trim() || `Technical sector ${index + 1}`;
+          select.append(option);
+        });
+        select.disabled = false;
+        select.value = String(Number.isInteger(previous) && previous >= 0 && previous < cards.length ? previous : 0);
+      }
+
+      document.getElementById('add-skill-category').addEventListener('click', () => {
+        const nameInput = document.getElementById('skill-category-name');
+        const symbolInput = document.getElementById('skill-category-symbol');
+        const name = nameInput.value.trim();
+        const symbol = symbolInput.value.trim();
+        if (!name) return say('Enter a name for the new technical sector.');
+        if (!symbol) return say('Enter a symbol or emoji for the new sector.');
+        const doc = frame.contentDocument;
+        const grid = doc?.querySelector('.skills-grid');
+        if (!grid) return say('This portfolio does not have a Technical Skills grid to add a sector to.');
+        const card = doc.createElement('article'); card.className = 'skill-card reveal in';
+        const head = doc.createElement('div'); head.className = 'sk-head';
+        const icon = doc.createElement('span'); icon.className = 'sk-icon'; icon.textContent = symbol;
+        const heading = doc.createElement('h3'); heading.textContent = name;
+        head.append(icon, heading);
+        const tags = doc.createElement('div'); tags.className = 'tag-row';
+        const skills = document.getElementById('skill-category-items').value.split(',').map(item => item.trim()).filter(Boolean);
+        skills.forEach(skill => {
+          const tag = doc.createElement('span'); tag.className = 'tag'; tag.textContent = skill; tags.append(tag);
+        });
+        card.append(head, tags); grid.append(card);
+        refreshSkillCategories([...grid.querySelectorAll(':scope > .skill-card')].length - 1);
+        nameInput.value = ''; symbolInput.value = ''; document.getElementById('skill-category-items').value = '';
+        say(`Added the ${name} sector. You can add more skills to it below.`);
+        scheduleAutoPublish();
+      });
+
+      document.getElementById('add-skill').addEventListener('click', () => {
+        const select = document.getElementById('skill-category-select');
+        const skillInput = document.getElementById('skill-name');
+        const skill = skillInput.value.trim();
+        const doc = frame.contentDocument;
+        const cards = doc ? [...doc.querySelectorAll('.skills-grid > .skill-card')] : [];
+        const card = cards[Number(select.value)];
+        if (!card) return say('Choose or create a technical sector first.');
+        if (!skill) return say('Enter the skill you want to add.');
+        let tags = card.querySelector('.tag-row');
+        if (!tags) { tags = doc.createElement('div'); tags.className = 'tag-row'; card.append(tags); }
+        if ([...tags.querySelectorAll('.tag')].some(tag => tag.textContent.trim().toLowerCase() === skill.toLowerCase())) {
+          return say('That skill is already listed in this sector.');
+        }
+        const tag = doc.createElement('span'); tag.className = 'tag'; tag.textContent = skill; tags.append(tag);
+        skillInput.value = '';
+        say(`Added ${skill} to ${card.querySelector('h3')?.textContent.trim() || 'the selected sector'}.`);
+        scheduleAutoPublish();
+      });
       document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => button.closest('.dialog').classList.remove('open')));
       document.querySelectorAll('.dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.classList.remove('open'); }));
       document.getElementById('add-cert').addEventListener('click', () => openDialog('cert-dialog'));
